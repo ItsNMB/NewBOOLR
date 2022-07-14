@@ -42,6 +42,11 @@ c.onkeydown = function(e) {
         case 13: // Enter
             break;
         case 27: // Escape
+            if(keys[27] instanceof Date && new Date - keys[27] > 50) {
+                mainMenu.show();
+                keys[27] = true;
+            }
+            return false;
             document.getElementById("list").style.display = "none";
             contextMenu.hide();
             waypointsMenu.hide();

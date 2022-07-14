@@ -4,7 +4,7 @@ var wires = [];
 // When for example a custom component inside a custom component is opened, the path of custom components is saved in the following array
 let path = [];
 
-var default_delay = 10000;
+var default_delay = 10;
 
 /*
 Adds component to the board
@@ -1531,6 +1531,11 @@ const IdGenerator = (function* () {
 })();
 const generateId = () => IdGenerator.next().value;
 
+function sleep(ms) {
+    boolrConsole.log(`sleeping for ${ms} ms`);
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 class Component {
     constructor(
         name,
@@ -1569,9 +1574,9 @@ class Component {
         if(settings.showComponentUpdates) this.highlight(250);
 
         // Update output ports
-        // this.function();
-        setTimeout(this.function(), default_delay);
-        console.log(default_delay);
+        this.function();
+        // setTimeout(this.function(), default_delay);
+        // boolrConsole.log(default_delay);
 
         const wires = [];
         const values = [];
@@ -1971,10 +1976,10 @@ class NOT extends Component {
         super(name,pos,1,1,{ type: "char", text: "!" });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
+        this.properties.delay = default_delay;
         this.function = function() {
             this.output[0].value = 1 - this.input[0].value;
         }
-        
     }
 }
 
@@ -1984,9 +1989,24 @@ class AND extends Component {
         this.addInputPort({ side: 3, pos: 1 });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
+        this.properties.delay = default_delay;
         this.function = function() {
             this.output[0].value = this.input[0].value & this.input[1].value;
         }
+    }
+
+    update() {
+        if(settings.showComponentUpdates) this.highlight(250);
+
+        this.lastUpdate = new Date;
+
+        const value = this.input[0].value & this.input[1].value;
+        setTimeout(() => updateQueue.push(
+            () => {
+                this.output[0].value = value;
+                this.output[0].connection && this.output[0].connection.update(value);
+            }
+        ), this.properties.delay);
     }
 }
 
@@ -1996,12 +2016,24 @@ class NAND extends Component {
         this.addInputPort({side: 3, pos: 1});
         this.addInputPort({side: 3, pos: 0});
         this.addOutputPort({side: 1, pos: 0});
+        this.properties.delay = default_delay;
         this.function = function() {
-            if (this.input[0].value & this.input[1].value == 1)
-                this.output[0].value = 0;
-            else
-                this.output[0].value = 1;
+            this.output[0].value = !(this.input[0].value & this.input[1].value);
         }
+    }
+
+    update() {
+        if(settings.showComponentUpdates) this.highlight(250);
+
+        this.lastUpdate = new Date;
+
+        const value = !(this.input[0].value & this.input[1].value);
+        setTimeout(() => updateQueue.push(
+            () => {
+                this.output[0].value = value;
+                this.output[0].connection && this.output[0].connection.update(value);
+            }
+        ), this.properties.delay);
     }
 }
 
@@ -2011,9 +2043,24 @@ class OR extends Component {
         this.addInputPort({ side: 3, pos: 1 });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
+        this.properties.delay = default_delay;
         this.function = function() {
             this.output[0].value = this.input[0].value | this.input[1].value;
         }
+    }
+
+    update() {
+        if(settings.showComponentUpdates) this.highlight(250);
+
+        this.lastUpdate = new Date;
+
+        const value = this.input[0].value | this.input[1].value;
+        setTimeout(() => updateQueue.push(
+            () => {
+                this.output[0].value = value;
+                this.output[0].connection && this.output[0].connection.update(value);
+            }
+        ), this.properties.delay);
     }
 }
 
@@ -2023,12 +2070,24 @@ class NOR extends Component {
         this.addInputPort({ side: 3, pos: 1 });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
+        this.properties.delay = default_delay;
         this.function = function() {
-            if (this.input[0].value | this.input[1].value)
-                this.output[0].value = 0;
-            else
-                this.output[0].value = 1;
+            this.output[0].value = !(this.input[0].value | this.input[1].value);
         }
+    }
+
+    update() {
+        if(settings.showComponentUpdates) this.highlight(250);
+
+        this.lastUpdate = new Date;
+
+        const value = !(this.input[0].value | this.input[1].value);
+        setTimeout(() => updateQueue.push(
+            () => {
+                this.output[0].value = value;
+                this.output[0].connection && this.output[0].connection.update(value);
+            }
+        ), this.properties.delay);
     }
 }
 
@@ -2038,9 +2097,24 @@ class XOR extends Component {
         this.addInputPort({ side: 3, pos: 1 });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
+        this.properties.delay = default_delay;
         this.function = function() {
             this.output[0].value = this.input[0].value ^ this.input[1].value;
         }
+    }
+
+    update() {
+        if(settings.showComponentUpdates) this.highlight(250);
+
+        this.lastUpdate = new Date;
+
+        const value = this.input[0].value ^ this.input[1].value;
+        setTimeout(() => updateQueue.push(
+            () => {
+                this.output[0].value = value;
+                this.output[0].connection && this.output[0].connection.update(value);
+            }
+        ), this.properties.delay);
     }
 }
 
@@ -2050,12 +2124,24 @@ class XNOR extends Component {
         this.addInputPort({ side: 3, pos: 1 });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
+        this.properties.delay = default_delay;
         this.function = function() {
-            if (this.input[0].value ^ this.input[1].value)
-                this.output[0].value = 0;
-            else
-                this.output[0].value = 1;
+            this.output[0].value = !(this.input[0].value ^ this.input[1].value);
         }
+    }
+
+    update() {
+        if(settings.showComponentUpdates) this.highlight(250);
+
+        this.lastUpdate = new Date;
+
+        const value = !(this.input[0].value ^ this.input[1].value);
+        setTimeout(() => updateQueue.push(
+            () => {
+                this.output[0].value = value;
+                this.output[0].connection && this.output[0].connection.update(value);
+            }
+        ), this.properties.delay);
     }
 }
 
