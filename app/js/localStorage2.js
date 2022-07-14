@@ -1,16 +1,16 @@
 function localStorageAvailable() {
     try {
-        localStorage.setItem("","");
+        localStorage.setItem("", "");
         localStorage.removeItem("");
         return true;
-    } catch(e) {
+    } catch (e) {
         return false;
     }
 }
 
 
 function setLocalStorage() {
-    if(!localStorageAvailable()) {
+    if (!localStorageAvailable()) {
         dialog.localStorageError();
         return;
     }
@@ -18,12 +18,12 @@ function setLocalStorage() {
     const data = {};
 
     let tipsData = {};
-    for(let i in tips) {
+    for (let i in tips) {
         tipsData[i] = !!tips[i].disabled;
     }
 
     data.version = VERSION;
-    if(clipboard.components.length || clipboard.wires.length || clipboard.selection) {
+    if (clipboard.components.length || clipboard.wires.length || clipboard.selection) {
         data.clipboard = stringify(
             clipboard.components,
             clipboard.wires,
@@ -37,35 +37,35 @@ function setLocalStorage() {
 
     try {
         localStorage.pwsData = JSON.stringify(data);
-    } catch(e) {
+    } catch (e) {
         console.warn("Could not set localStorage data");
     }
 }
 
 function getLocalStorage() {
-    if(!localStorageAvailable()) {
+    if (!localStorageAvailable()) {
         dialog.localStorageError();
         return;
     }
 
     let data = localStorage.pwsData;
 
-    if(!localStorage.pwsData) {
+    if (!localStorage.pwsData) {
         return;
     }
 
     try {
         data = JSON.parse(data);
-    } catch(e) {
+    } catch (e) {
         console.warn("Could not parse localStorage data " + e);
         return;
     }
 
-    if(!data.version || data.version != VERSION) {
+    if (!data.version || data.version != VERSION) {
         dialog.update();
     }
 
-    if(data.clipboard) {
+    if (data.clipboard) {
         try {
             const parsed = parse(data.clipboard);
             clipboard.copy(
@@ -73,7 +73,7 @@ function getLocalStorage() {
                 parsed.wires,
                 parsed.selection
             );
-        } catch(e) {
+        } catch (e) {
             console.warn("Could not parse clipboard data from localStorage " + e);
         }
     }
@@ -82,23 +82,40 @@ function getLocalStorage() {
     //     savedCustomComponents = parse(data.savedCustomComponents).components;
     // }
 
-    if(data.settings) {
+    if (data.settings) {
         settings = data.settings;
     }
 
-    if(data.tips) {
-        for(let tip in data.tips) {
+    if (data.tips) {
+        for (let tip in data.tips) {
             tips[tip].disabled = data.tips[tip];
         }
     }
 }
 
 const constructors = {
-    Input,Output,NOT,AND,NAND,OR,NOT,XOR,XNOR,
-    Button,Constant,Delay,Clock,Debug,
-    Beep,Counter,LED,Display,
-    Custom, TimerStart, TimerEnd,
-    ROM
+    Input,
+    Output,
+    NOT,
+    AND,
+    NAND,
+    OR,
+    NOT,
+    XOR,
+    XNOR,
+    Button,
+    Constant,
+    Delay,
+    Clock,
+    Debug,
+    Beep,
+    Counter,
+    LED,
+    Display,
+    Custom,
+    TimerStart,
+    TimerEnd,
+    SRLatch
 };
 
 /*
@@ -110,11 +127,11 @@ const constructors = {
  */
 function stringify(components = [], wires = [], selection) {
     let stringified = [
-        [],     // Component data
-        []      // Wire data
+        [], // Component data
+        [] // Wire data
     ];
 
-    for(let i = 0; i < components.length; ++i) {
+    for (let i = 0; i < components.length; ++i) {
         const component = components[i];
 
         const constructor = component.constructor.name;
@@ -133,36 +150,36 @@ function stringify(components = [], wires = [], selection) {
 
         data.properties = component.properties;
 
-        if(component.value) data.value = component.value;
+        if (component.value) data.value = component.value;
 
         data.input = [];
-        for(let i = 0; i < component.input.length; ++i) {
+        for (let i = 0; i < component.input.length; ++i) {
             data.input[i] = {
                 id: component.input[i].id,
                 name: component.input[i].name,
-                pos: Object.assign({},component.input[i].pos),
+                pos: Object.assign({}, component.input[i].pos),
                 value: component.input[i].value
             }
         }
 
         data.output = [];
-        for(let i = 0; i < component.output.length; ++i) {
+        for (let i = 0; i < component.output.length; ++i) {
             data.output[i] = {
                 id: component.output[i].id,
                 name: component.output[i].name,
-                pos: Object.assign({},component.output[i].pos),
+                pos: Object.assign({}, component.output[i].pos),
                 value: component.output[i].value
             }
         }
 
-        if(constructor == "Custom") {
-            data.componentData = JSON.parse(stringify(component.components,component.wires));
+        if (constructor == "Custom") {
+            data.componentData = JSON.parse(stringify(component.components, component.wires));
         }
 
-        stringified[0].push([constructor,data]);
+        stringified[0].push([constructor, data]);
     }
 
-    for(let i = 0; i < wires.length; ++i) {
+    for (let i = 0; i < wires.length; ++i) {
         const wire = wires[i];
 
         const fromIndex = components.indexOf(wire.from && wire.from.component);
@@ -171,12 +188,12 @@ function stringify(components = [], wires = [], selection) {
         const toPortIndex = wire.to && wire.to.component && wire.to.component.input.indexOf(wire.to);
 
         const input = [];
-        for(let i = 0; i < wire.input.length; ++i) {
+        for (let i = 0; i < wire.input.length; ++i) {
             input.push(wires.indexOf(wire.input[i]));
         }
 
         const output = [];
-        for(let i = 0; i < wire.output.length; ++i) {
+        for (let i = 0; i < wire.output.length; ++i) {
             output.push(wires.indexOf(wire.output[i]));
         }
 
@@ -195,7 +212,7 @@ function stringify(components = [], wires = [], selection) {
         ]);
     }
 
-    if(selection) {
+    if (selection) {
         stringified[2] = [
             Math.round(selection.x),
             Math.round(selection.y),
@@ -206,7 +223,7 @@ function stringify(components = [], wires = [], selection) {
 
     try {
         return JSON.stringify(stringified);
-    } catch(e) {
+    } catch (e) {
         throw new Error("Unable to stringify data");
     }
 }
@@ -217,40 +234,40 @@ function stringify(components = [], wires = [], selection) {
  @return {string}
  */
 function parse(data) {
-    if(typeof data == "string") {
+    if (typeof data == "string") {
         try {
             data = JSON.parse(data);
-        } catch(e) {
+        } catch (e) {
             throw new Error("Board data not valid");
         }
     }
 
-    if(!Array.isArray(data)) throw new Error("Board data not valid");
+    if (!Array.isArray(data)) throw new Error("Board data not valid");
 
     const components = data[0] || [];
     const wires = data[1] || [];
     let selection = data[2];
 
-    for(let i = 0; i < components.length; ++i) {
+    for (let i = 0; i < components.length; ++i) {
         const constructor = components[i][0];
-        if(!constructors[constructor]) {
-            components.splice(i,1);
+        if (!constructors[constructor]) {
+            components.splice(i, 1);
             --i;
             continue;
         }
 
         let data = components[i][1];
-        if(typeof data == "string") {
+        if (typeof data == "string") {
             try {
                 data = JSON.parse(data);
-            } catch(e) {
+            } catch (e) {
                 throw new Error("Board data not valid");
             }
         }
 
         const component = new constructors[constructor]();
 
-        if(constructor == "Custom") {
+        if (constructor == "Custom") {
             const parsed = parse(JSON.stringify(data.componentData));
             component.components = parsed.components;
             component.wires = parsed.wires;
@@ -259,7 +276,7 @@ function parse(data) {
         }
 
         const input = data.input;
-        for(let i = 0; i < component.input.length; ++i) {
+        for (let i = 0; i < component.input.length; ++i) {
             component.input[i].name = input[i].name;
             component.input[i].value = input[i].value;
             component.input[i].pos = input[i].pos;
@@ -267,35 +284,35 @@ function parse(data) {
         delete data.input;
 
         const output = data.output;
-        for(let i = 0; i < component.output.length; ++i) {
+        for (let i = 0; i < component.output.length; ++i) {
             component.output[i].name = output[i].name;
             component.output[i].value = output[i].value;
             component.output[i].pos = output[i].pos;
         }
         delete data.output;
 
-        Object.assign(component,data);
-        component.pos = Object.assign({},data.pos);
+        Object.assign(component, data);
+        component.pos = Object.assign({}, data.pos);
 
         components[i] = component;
     }
 
-    for(let i = 0; i < wires.length; ++i) {
-        if(wires[i].length == 11) {
+    for (let i = 0; i < wires.length; ++i) {
+        if (wires[i].length == 11) {
             const pos = wires[i][8];
             const intersections = wires[i][9];
             let color = wires[i][10];
 
             // If color is not in array format ([r,g,b]), convert
-            if(typeof color == "string") {
-                if(color[0] == "#" && color.length == 4) {
-                    color = color.match(/\w/g).map(n => parseInt(n.repeat(2),16));
-                } else if(color[0] == "#" && color.length == 7) {
-                    color = color.match(/\w{2}/g).map(n => parseInt(n,16));
-                } else if(color[0] == "r") {
+            if (typeof color == "string") {
+                if (color[0] == "#" && color.length == 4) {
+                    color = color.match(/\w/g).map(n => parseInt(n.repeat(2), 16));
+                } else if (color[0] == "#" && color.length == 7) {
+                    color = color.match(/\w{2}/g).map(n => parseInt(n, 16));
+                } else if (color[0] == "r") {
                     color = color.match(/\d+/g).map(n => +n);
                 } else {
-                    color = [136,136,136];
+                    color = [136, 136, 136];
                 }
             }
 
@@ -305,8 +322,8 @@ function parse(data) {
 
             wire.id = wires[i][6];
 
-            wire.from = [wires[i][0],wires[i][1]]; // This is getting parsed later
-            wire.to = [wires[i][2],wires[i][3]]; // This one too
+            wire.from = [wires[i][0], wires[i][1]]; // This is getting parsed later
+            wire.to = [wires[i][2], wires[i][3]]; // This one too
 
             wire.input = wires[i][4];
             wire.output = wires[i][5];
@@ -320,15 +337,15 @@ function parse(data) {
             let color = wires[i][9];
 
             // If color is not in array format ([r,g,b]), convert
-            if(typeof color == "string") {
-                if(color[0] == "#" && color.length == 4) {
-                    color = color.match(/\w/g).map(n => parseInt(n.repeat(2),16));
-                } else if(color[0] == "#" && color.length == 7) {
-                    color = color.match(/\w{2}/g).map(n => parseInt(n,16));
-                } else if(color[0] == "r") {
+            if (typeof color == "string") {
+                if (color[0] == "#" && color.length == 4) {
+                    color = color.match(/\w/g).map(n => parseInt(n.repeat(2), 16));
+                } else if (color[0] == "#" && color.length == 7) {
+                    color = color.match(/\w{2}/g).map(n => parseInt(n, 16));
+                } else if (color[0] == "r") {
                     color = color.match(/\d+/g).map(n => +n);
                 } else {
-                    color = [136,136,136];
+                    color = [136, 136, 136];
                 }
             }
 
@@ -336,8 +353,8 @@ function parse(data) {
                 pos, intersections, color
             );
 
-            wire.from = [wires[i][0],wires[i][1]]; // This is getting parsed later
-            wire.to = [wires[i][2],wires[i][3]]; // This one too
+            wire.from = [wires[i][0], wires[i][1]]; // This is getting parsed later
+            wire.to = [wires[i][2], wires[i][3]]; // This one too
 
             wire.input = wires[i][4];
             wire.output = wires[i][5];
@@ -349,38 +366,38 @@ function parse(data) {
     }
 
     // Create connections
-    for(let i = 0; i < wires.length; ++i) {
+    for (let i = 0; i < wires.length; ++i) {
         const wire = wires[i];
 
         const from = components[wire.from[0]];
         let fromPort;
-        if(from && from.output) fromPort = from.output[wire.from[1]];
+        if (from && from.output) fromPort = from.output[wire.from[1]];
 
         const to = components[wire.to[0]];
         let toPort;
-        if(to && to.input) toPort = to.input[wire.to[1]];
+        if (to && to.input) toPort = to.input[wire.to[1]];
 
         wire.from = fromPort;
         wire.to = toPort;
 
-        for(let i = 0; i < wire.input.length; ++i) {
+        for (let i = 0; i < wire.input.length; ++i) {
             wire.input[i] = wires[wire.input[i]];
         }
 
-        for(let i = 0; i < wire.output.length; ++i) {
+        for (let i = 0; i < wire.output.length; ++i) {
             wire.output[i] = wires[wire.output[i]];
         }
 
-        if(wire.to) {
+        if (wire.to) {
             wire.to.connection = wire;
         }
 
-        if(wire.from) {
+        if (wire.from) {
             wire.from.connection = wire;
         }
     }
 
-    if(selection) {
+    if (selection) {
         selection = {
             x: selection[0],
             y: selection[1],
@@ -419,7 +436,7 @@ function saveBoard(
 
     name = name || "BOOLR-save-" + new Date().toLocaleString();
 
-    const data = stringify(components,wires);
+    const data = stringify(components, wires);
     const csvData = new Blob([data], { type: "text/csv" });
     const csvUrl = URL.createObjectURL(csvData);
 
@@ -439,7 +456,7 @@ function openFile() {
 }
 
 function readFile(input) {
-    const name = input.files[0] && input.files[0].name.replace(".board","");
+    const name = input.files[0] && input.files[0].name.replace(".board", "");
     document.title = "BOOLR | " + name;
 
     const reader = new FileReader;
@@ -448,7 +465,7 @@ function readFile(input) {
         // try {
         // TODO: dit is lelijk!
         const parsed = parse(data);
-        const clone = cloneSelection(parsed.components || [],parsed.wires || []);
+        const clone = cloneSelection(parsed.components || [], parsed.wires || []);
 
         components = [];
         wires = [];

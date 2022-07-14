@@ -276,11 +276,11 @@ createContextMenuOption(
 );
 
 createContextMenuOption(
-    "Componentize",
+    "Compact",
     "memory",
     "Shift+C",
     function() {
-        componentize(
+        compact(
             selecting.components,
             selecting.wires,
             selecting,
