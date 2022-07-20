@@ -131,6 +131,34 @@ createContextMenuOption(
 );
 
 createContextMenuOption(
+    "Add Input Port",
+    "add",
+    "A",
+    function() {
+        const component = findComponentByPos(...contextMenu.getPos());
+        component.addNewInputPort();
+    },
+    function() {
+        const component = findComponentByPos(...contextMenu.getPos());
+        return component;
+    }
+);
+
+createContextMenuOption(
+    "Remove Input Port",
+    "remove",
+    "D",
+    function() {
+        const component = findComponentByPos(...contextMenu.getPos());
+        component.removeInputPort();
+    },
+    function() {
+        const component = findComponentByPos(...contextMenu.getPos());
+        return component;
+    }
+);
+
+createContextMenuOption(
     "Edit",
     "mode_edit",
     "E",
@@ -276,11 +304,11 @@ createContextMenuOption(
 );
 
 createContextMenuOption(
-    "Compact",
+    "Componentize",
     "memory",
     "Shift+C",
     function() {
-        compact(
+        componentize(
             selecting.components,
             selecting.wires,
             selecting,
