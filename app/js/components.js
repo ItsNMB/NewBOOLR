@@ -18,24 +18,24 @@ function add(
     undoable = false,
     sendToSocket = true
 ) {
-    if (!findPortByPos(x, y) && !findWireByPos(x, y) || force) {
+    if(!findPortByPos(x,y) && !findWireByPos(x,y) || force) {
         components.push(component);
 
-        if (undoable && component.constructor == Custom && component.input.length + component.output.length == 0) {
+        if(undoable && component.constructor == Custom && component.input.length + component.output.length == 0) {
             component.open();
         }
 
-        if (undoable) {
-            if (this != redoCaller) redoStack = [];
+        if(undoable) {
+            if(this != redoCaller) redoStack = [];
 
             undoStack.push(() => {
                 removeComponent(component);
 
-                redoStack.push(add.bind(redoCaller, ...arguments));
+                redoStack.push(add.bind(redoCaller,...arguments));
             });
         }
 
-        if (socket && sendToSocket) {
+        if(socket && sendToSocket) {
             socket.send(JSON.stringify({
                 type: "add",
                 data: stringify([component])
@@ -66,34 +66,34 @@ function addSelection(
 ) {
     window.components.push(...components);
 
-    for (let i = 0; i < wires.length; ++i) {
+    for(let i = 0; i < wires.length; ++i) {
         const wire = wires[i];
         //connect(wire.from,wire.to,wire);
 
-        if (wire.to) {
+        if(wire.to) {
             wire.to.connection = wire;
         }
-        if (wire.from) {
+        if(wire.from) {
             wire.from.connection = wire;
 
             const component = wire.from.component;
             updateQueue.unshift(component.update.bind(component));
         }
 
-        for (let i = 0; i < wire.input.length; ++i) {
-            connectWires(wire.input[i], wire);
+        for(let i = 0; i < wire.input.length; ++i) {
+            connectWires(wire.input[i],wire);
         }
 
-        for (let i = 0; i < wire.output.length; ++i) {
-            connectWires(wire, wire.output[i]);
+        for(let i = 0; i < wire.output.length; ++i) {
+            connectWires(wire,wire.output[i]);
         }
 
         window.wires.push(wire);
     }
 
-    if (selection) {
-        if (x == undefined) x = selection.x;
-        if (y == undefined) y = selection.y;
+    if(selection) {
+        if(x == undefined) x = selection.x;
+        if(y == undefined) y = selection.y;
 
         selecting = Object.assign({}, selection);
         selecting.x = x;
@@ -107,9 +107,9 @@ function addSelection(
         );
     }
 
-    if (selection) {
-        if (x == undefined) x = selection.x;
-        if (y == undefined) y = selection.y;
+    if(selection) {
+        if(x == undefined) x = selection.x;
+        if(y == undefined) y = selection.y;
 
         selecting = Object.assign({}, selection);
         selecting.x = x;
@@ -123,22 +123,22 @@ function addSelection(
         );
     }
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
-            removeSelection(components, wires);
+            removeSelection(components,wires);
             selecting = null;
             contextMenu.hide();
 
-            redoStack.push(addSelection.bind(redoCaller, ...arguments));
+            redoStack.push(addSelection.bind(redoCaller,...arguments));
         });
     }
 
-    if (socket && sendToSocket) {
+    if(socket && sendToSocket) {
         socket.send(JSON.stringify({
             type: "add",
-            data: stringify([...components], [...wires])
+            data: stringify([...components],[...wires])
         }));
     }
 }
@@ -148,26 +148,26 @@ Removes component from the board
 @param {object} component
  */
 function removeComponent(component, undoable = false, sendToSocket = true) {
-    if (!component) return;
+    if(!component) return;
 
     const wiresOld = [...wires];
 
     const removedWires = [];
 
-    for (let i = 0; i < component.input.length; ++i) {
+    for(let i = 0; i < component.input.length; ++i) {
         // Remove connections
         const wire = component.input[i].connection;
-        if (wire) {
-            const removed = removeWire(wire, false, false);
+        if(wire) {
+            const removed = removeWire(wire,false,false);
             removedWires.push(...removed);
         }
     }
 
-    for (let i = 0; i < component.output.length; ++i) {
+    for(let i = 0; i < component.output.length; ++i) {
         // Remove connections
         const wire = component.output[i].connection;
-        if (wire) {
-            const removed = removeWire(wire, false, false);
+        if(wire) {
+            const removed = removeWire(wire,false,false);
             removedWires.push(...removed);
         }
     }
@@ -176,36 +176,36 @@ function removeComponent(component, undoable = false, sendToSocket = true) {
 
     const wireIDs = removedWires.map(i => i.id);
 
-    if (socket && sendToSocket) {
+    if(socket && sendToSocket) {
         socket.send(JSON.stringify({
             type: "remove",
-            data: JSON.stringify([component.id, wireIDs])
+            data: JSON.stringify([component.id,wireIDs])
         }));
     }
 
     const index = components.indexOf(component);
-    index > -1 && components.splice(index, 1);
+    index > -1 && components.splice(index,1);
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
             add(component);
-            for (let i = 0; i < removedWires.length; ++i) {
+            for(let i = 0; i < removedWires.length; ++i) {
                 const wire = removedWires[i];
-                connect(wire.from, wire.to, wire);
-                for (let i = 0; i < wire.input.length; ++i) {
-                    connectWires(wire.input[i], wire);
+                connect(wire.from,wire.to,wire);
+                for(let i = 0; i < wire.input.length; ++i) {
+                    connectWires(wire.input[i],wire);
                 }
 
-                for (let i = 0; i < wire.output.length; ++i) {
-                    connectWires(wire, wire.output[i]);
+                for(let i = 0; i < wire.output.length; ++i) {
+                    connectWires(wire,wire.output[i]);
                 }
 
                 wires.push(wire);
             }
 
-            redoStack.push(removeComponent.bind(redoCaller, ...arguments));
+            redoStack.push(removeComponent.bind(redoCaller,...arguments));
         });
     }
 
@@ -216,18 +216,18 @@ function removeComponent(component, undoable = false, sendToSocket = true) {
 }
 
 function removeWire(wire, undoable = false, sendToSocket = true) {
-    if (!wire) return;
+    if(!wire) return;
 
     const removedWires = [wire];
 
     const from = wire.from;
     const to = wire.to;
 
-    if (from) {
+    if(from) {
         delete from.connection;
     }
 
-    if (to) {
+    if(to) {
         delete to.connection;
         to.value = 0;
         to.component.update();
@@ -236,22 +236,22 @@ function removeWire(wire, undoable = false, sendToSocket = true) {
     //delete wire.from;
     //delete wire.to;
 
-    for (let i = 0; i < wire.input.length; ++i) {
+    for(let i = 0; i < wire.input.length; ++i) {
         const index = wire.input[i].output.indexOf(wire);
-        if (index > -1) {
-            wire.input[i].output.splice(index, 1);
-            if (!wire.input[i].to) {
+        if(index > -1) {
+            wire.input[i].output.splice(index,1);
+            if(!wire.input[i].to) {
                 const removed = removeWire(wire.input[i]);
                 removedWires.push(...removed);
             }
         }
     }
 
-    for (let i = 0; i < wire.output.length; ++i) {
+    for(let i = 0; i < wire.output.length; ++i) {
         const index = wire.output[i].input.indexOf(wire);
-        if (index > -1) {
-            wire.output[i].input.splice(index, 1);
-            if (!wire.output[i].from) {
+        if(index > -1) {
+            wire.output[i].input.splice(index,1);
+            if(!wire.output[i].from) {
                 const removed = removeWire(wire.output[i]);
                 removedWires.push(...removed);
             }
@@ -259,35 +259,35 @@ function removeWire(wire, undoable = false, sendToSocket = true) {
     }
 
     const index = wires.indexOf(wire);
-    if (index > -1) wires.splice(index, 1);
+    if(index > -1) wires.splice(index,1);
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
-            for (let i = 0; i < removedWires.length; ++i) {
+            for(let i = 0; i < removedWires.length; ++i) {
                 const wire = removedWires[i];
-                connect(wire.from, wire.to, wire);
-                for (let i = 0; i < wire.input.length; ++i) {
-                    connectWires(wire.input[i], wire);
+                connect(wire.from,wire.to,wire);
+                for(let i = 0; i < wire.input.length; ++i) {
+                    connectWires(wire.input[i],wire);
                 }
 
-                for (let i = 0; i < wire.output.length; ++i) {
-                    connectWires(wire, wire.output[i]);
+                for(let i = 0; i < wire.output.length; ++i) {
+                    connectWires(wire,wire.output[i]);
                 }
 
                 wires.push(wire);
             }
 
-            redoStack.push(removeWire.bind(redoCaller, ...arguments));
+            redoStack.push(removeWire.bind(redoCaller,...arguments));
         });
     }
 
     const wireIDs = removedWires.map(i => i.id);
-    if (socket && sendToSocket) {
+    if(socket && sendToSocket) {
         socket.send(JSON.stringify({
             type: "remove",
-            data: JSON.stringify([-1, wireIDs])
+            data: JSON.stringify([-1,wireIDs])
         }));
     }
 
@@ -298,7 +298,7 @@ function removeSelection(components, wires, undoable = false) {
     const removedComponents = [];
     const removedWires = [];
 
-    for (let i = 0; i < components.length; ++i) {
+    for(let i = 0; i < components.length; ++i) {
         const removed = removeComponent(components[i]);
         removedComponents.push(removed.component);
         removedWires.push(...removed.wires);
@@ -306,30 +306,30 @@ function removeSelection(components, wires, undoable = false) {
 
     const selection = selecting;
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
             addSelection(
                 components,
                 wires,
                 selection,
-                undefined, undefined
+                undefined,undefined
             )
 
-            for (let i = 0; i < removedWires.length; ++i) {
+            for(let i = 0; i < removedWires.length; ++i) {
                 const wire = removedWires[i];
-                connect(wire.from, wire.to, wire);
-                for (let i = 0; i < wire.input.length; ++i) {
-                    connectWires(wire.input[i], wire);
+                connect(wire.from,wire.to,wire);
+                for(let i = 0; i < wire.input.length; ++i) {
+                    connectWires(wire.input[i],wire);
                 }
 
-                for (let i = 0; i < wire.output.length; ++i) {
-                    connectWires(wire, wire.output[i]);
+                for(let i = 0; i < wire.output.length; ++i) {
+                    connectWires(wire,wire.output[i]);
                 }
             }
 
-            redoStack.push(removeSelection.bind(redoCaller, ...arguments));
+            redoStack.push(removeSelection.bind(redoCaller,...arguments));
         });
     }
 
@@ -347,39 +347,39 @@ Connects two components with a wire
 @param {object} wire
  */
 function connect(from, to, wire, undoable = false, sendToSocket = true) {
-    if (to) {
+    if(to) {
         to.connection = wire;
         wire.to = to;
     }
-    if (from) {
+    if(from) {
         from.connection = wire;
         wire.from = from;
 
         updateQueue.push(from.component.update.bind(from.component));
     }
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
             removeWire(wire);
 
             redoStack.push(() => {
-                connect.call(null, ...arguments);
+                connect.call(null,...arguments);
 
-                if (!wires.includes(wire)) wires.push(wire);
+                if(!wires.includes(wire)) wires.push(wire);
             });
         });
     }
 
-    if (socket && sendToSocket) {
+    if(socket && sendToSocket) {
         const fromIndex = components.indexOf(from.component);
         const fromPortIndex = from.component.output.indexOf(from);
         const toIndex = components.indexOf(to.component);
         const toPortIndex = to.component.input.indexOf(to);
         socket.send(JSON.stringify({
             type: "connect",
-            data: JSON.stringify([stringify([], [wire]), fromIndex, fromPortIndex, toIndex, toPortIndex])
+            data: JSON.stringify([stringify([],[wire]),fromIndex,fromPortIndex,toIndex,toPortIndex])
         }));
     }
 }
@@ -392,12 +392,12 @@ function connect(from, to, wire, undoable = false, sendToSocket = true) {
  @param {number} y coordinate of intersection
  */
 function connectWires(wire1, wire2, undoable = false) {
-    if (!wire1 || !wire2) return;
+    if(!wire1 || !wire2) return;
 
-    if (!wire1.output.includes(wire2)) {
+    if(!wire1.output.includes(wire2)) {
         wire1.output.push(wire2);
     }
-    if (!wire2.input.includes(wire1)) {
+    if(!wire2.input.includes(wire1)) {
         wire2.input.push(wire1);
     }
 
@@ -406,26 +406,26 @@ function connectWires(wire1, wire2, undoable = false) {
 
     wire2.update(wire1.value);
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
             const outputIndex = wire1.output.indexOf(wire2);
-            if (outputIndex > -1) wire1.output.splice(outputIndex);
+            if(outputIndex > -1) wire1.output.splice(outputIndex);
 
-            if (!wire2.to && wire2.output.length < 1) removeWire(wire2);
+            if(!wire2.to && wire2.output.length < 1) removeWire(wire2);
 
             const inputIndex = wire2.input.indexOf(wire1);
-            if (inputIndex > -1) wire2.input.splice(inputIndex);
+            if(inputIndex > -1) wire2.input.splice(inputIndex);
             wire2.color = color;
 
-            if (!wire1.from && wire1.input.length < 1) removeWire(wire1);
+            if(!wire1.from && wire1.input.length < 1) removeWire(wire1);
 
             redoStack.push(() => {
-                connectWires.call(null, ...arguments);
+                connectWires.call(null,...arguments);
 
-                if (!wires.includes(wire1)) wires.push(wire1);
-                if (!wires.includes(wire2)) wires.push(wire2);
+                if(!wires.includes(wire1)) wires.push(wire1);
+                if(!wires.includes(wire2)) wires.push(wire2);
             });
         });
     }
@@ -437,11 +437,11 @@ function connectWires(wire1, wire2, undoable = false) {
  @param {number} width
  @param {number} height
 */
-function changeSize(component, width = component.width, height = component.height, undoable = false, sendToSocket = true) {
+function changeSize(component,width = component.width, height = component.height, undoable = false, sendToSocket = true) {
     const ports = component.input.concat(component.output);
-    if (2 * (height + width) < ports.length) return;
+    if(2 * (height + width) < ports.length) return;
 
-    const oldPortsPos = ports.map(port => Object.assign({}, port.pos));
+    const oldPortsPos = ports.map(port => Object.assign({},port.pos));
 
     const oldHeight = component.height;
     const oldWidth = component.width;
@@ -449,47 +449,47 @@ function changeSize(component, width = component.width, height = component.heigh
     component.height = height;
     component.width = width;
 
-    for (let i = 0; i < ports.length; ++i) {
+    for(let i = 0; i < ports.length; ++i) {
         const port = ports[i];
-        if ((port.pos.side % 2 == 1 && port.pos.pos > height - 1) ||
+        if((port.pos.side % 2 == 1 && port.pos.pos > height - 1) ||
             (port.pos.side % 2 == 0 && port.pos.pos > width - 1)) {
 
             let side = port.pos.side % 2 ? 2 : 1;
             let pos;
-            if (port.pos.side == 0 || port.pos.side == 3) pos = 0;
-            else if (port.pos.side == 1) pos = width - 1;
-            else if (port.pos.side == 2) pos = height - 1;
+            if(port.pos.side == 0 || port.pos.side == 3) pos = 0;
+            else if(port.pos.side == 1) pos = width - 1;
+            else if(port.pos.side == 2) pos = height - 1;
 
             const dir = port.pos.side == 0 || port.pos.side == 3 ? 1 : -1;
 
-            while (findPortByComponent(component, side, pos)) {
+            while(findPortByComponent(component,side,pos)) {
                 pos += dir;
-                if (pos < 0) {
+                if(pos < 0) {
                     side = (4 + --side) % 2;
-                    if (side % 2 == 1) pos = height - 1;
+                    if(side % 2 == 1) pos = height - 1;
                     else pos = width - 1;
-                } else if (side % 2 == 0 && pos > width - 1 || side % 2 == 1 && pos > height - 1) {
+                } else if(side % 2 == 0 && pos > width - 1 || side % 2 == 1 && pos > height - 1) {
                     side = ++side % 4;
                     pos = 0;
                 }
             }
 
-            movePort(port, side, pos);
+            movePort(port,side,pos);
         }
     }
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
             component.height = oldHeight;
             component.width = oldWidth;
 
-            for (let i = 0; i < ports.length; ++i) {
+            for(let i = 0; i < ports.length; ++i) {
                 ports[i].pos = oldPortsPos[i];
             }
 
-            redoStack.push(changeSize.bind(redoCaller, ...arguments));
+            redoStack.push(changeSize.bind(redoCaller,...arguments));
         });
     }
 }
@@ -508,7 +508,8 @@ function moveComponent(
     undoable = false,
     sendToSocket = true
 ) {
-    const oldPos = Object.assign({},
+    const oldPos = Object.assign(
+        {},
         dragging && dragging.component == component ? dragging.pos : component.pos
     );
 
@@ -519,10 +520,10 @@ function moveComponent(
     component.pos.y = y;
 
     let oldInputWirePos = [];
-    for (let i = 0; i < component.input.length; ++i) {
+    for(let i = 0; i < component.input.length; ++i) {
         const wire = component.input[i].connection;
-        if (wire) {
-            if (undoable) {
+        if(wire) {
+            if(undoable) {
                 oldInputWirePos.push([...wire.pos]);
             }
 
@@ -534,35 +535,36 @@ function moveComponent(
             const angle = Math.PI / 2 * portPos.side;
             pos.x += Math.sin(angle);
             pos.y += Math.cos(angle);
-            if (portPos.side == 1) pos.x += (component.width - 1);
-            else if (portPos.side == 2) pos.y += (component.height - 1);
+            if(portPos.side == 1) pos.x += (component.width - 1);
+            else if(portPos.side == 2) pos.y += (component.height - 1);
 
-            if (portPos.side % 2 == 0) pos.x += portPos.pos;
+            if(portPos.side % 2 == 0) pos.x += portPos.pos;
             else pos.y -= portPos.pos;
 
             let dx = wire.pos.slice(-1)[0].x - wire.pos.slice(-2)[0].x;
             let dy = wire.pos.slice(-1)[0].y - wire.pos.slice(-2)[0].y;
 
             const index = wire.pos.findIndex(
-                (pos, i) => i < wire.pos.length - 1 && pos.x == wire.pos.slice(-1)[0].x && pos.y == wire.pos.slice(-1)[0].y
+                (pos,i) => i < wire.pos.length - 1 && pos.x == wire.pos.slice(-1)[0].x && pos.y == wire.pos.slice(-1)[0].y
             );
 
-            if (index > -1) {
-                wire.pos.splice(index + 1, wire.pos.length);
+            if(index > -1) {
+                wire.pos.splice(index + 1,wire.pos.length);
                 continue;
             }
 
-            while (Math.abs(dx) + Math.abs(dy) > 0) {
+            while(Math.abs(dx) + Math.abs(dy) > 0) {
                 let sdx = 0;
                 let sdy = 0;
-                if (Math.abs(dx) > Math.abs(dy)) {
+                if(Math.abs(dx) > Math.abs(dy)) {
                     sdx = Math.sign(dx);
                 } else {
                     sdy = Math.sign(dy);
                 }
 
                 wire.pos.splice(
-                    wire.pos.length - 1, 0, {
+                    wire.pos.length - 1, 0,
+                    {
                         x: wire.pos.slice(-2)[0].x + sdx,
                         y: wire.pos.slice(-2)[0].y + sdy
                     }
@@ -574,10 +576,10 @@ function moveComponent(
     }
 
     let oldOutputWirePos = [];
-    for (let i = 0; i < component.output.length; ++i) {
+    for(let i = 0; i < component.output.length; ++i) {
         const wire = component.output[i].connection;
-        if (wire) {
-            if (undoable) {
+        if(wire) {
+            if(undoable) {
                 oldOutputWirePos.push([...wire.pos]);
             }
 
@@ -589,35 +591,36 @@ function moveComponent(
             const angle = Math.PI / 2 * portPos.side;
             pos.x += Math.sin(angle);
             pos.y += Math.cos(angle);
-            if (portPos.side == 1) pos.x += (component.width - 1);
-            else if (portPos.side == 2) pos.y += (component.height - 1);
+            if(portPos.side == 1) pos.x += (component.width - 1);
+            else if(portPos.side == 2) pos.y += (component.height - 1);
 
-            if (portPos.side % 2 == 0) pos.x += portPos.pos;
+            if(portPos.side % 2 == 0) pos.x += portPos.pos;
             else pos.y -= portPos.pos;
 
             let dx = wire.pos[0].x - wire.pos[1].x;
             let dy = wire.pos[0].y - wire.pos[1].y;
 
             const index = wire.pos.findIndex(
-                (pos, i) => i > 0 && pos.x == wire.pos[0].x && pos.y == wire.pos[0].y
+                (pos,i) => i > 0 && pos.x == wire.pos[0].x && pos.y == wire.pos[0].y
             );
 
-            if (index > -1) {
-                wire.pos.splice(1, index);
+            if(index > -1) {
+                wire.pos.splice(1,index);
                 continue;
             }
 
-            while (Math.abs(dx) + Math.abs(dy) > 0) {
+            while(Math.abs(dx) + Math.abs(dy) > 0) {
                 let sdx = 0;
                 let sdy = 0;
-                if (Math.abs(dx) > Math.abs(dy)) {
+                if(Math.abs(dx) > Math.abs(dy)) {
                     sdx = Math.sign(dx);
                 } else {
                     sdy = Math.sign(dy);
                 }
 
                 wire.pos.splice(
-                    1, 0, {
+                    1, 0,
+                    {
                         x: wire.pos[1].x + sdx,
                         y: wire.pos[1].y + sdy
                     }
@@ -628,45 +631,46 @@ function moveComponent(
         }
     }
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
             component.pos.x = oldPos.x;
             component.pos.y = oldPos.y;
 
-            for (let i = 0; i < component.input.length; ++i) {
+            for(let i = 0; i < component.input.length; ++i) {
                 const wire = component.input[i].connection;
-                if (wire) {
+                if(wire) {
                     wire.pos = oldInputWirePos[i];
                     wire.pos.slice(-1)[0].x -= dx;
                     wire.pos.slice(-1)[0].y -= dy;
                 }
             }
 
-            for (let i = 0; i < component.output.length; ++i) {
+            for(let i = 0; i < component.output.length; ++i) {
                 const wire = component.output[i].connection;
-                if (wire) {
+                if(wire) {
                     wire.pos = oldOutputWirePos[i];
                     wire.pos[0].x -= dx;
                     wire.pos[0].y -= dy;
                 }
             }
 
-            redoStack.push(moveComponent.bind(redoCaller, ...arguments));
+            redoStack.push(moveComponent.bind(redoCaller,...arguments));
         });
     }
 
-    if (socket && sendToSocket) {
+    if(socket && sendToSocket) {
         socket.send(JSON.stringify({
             type: "move",
-            data: JSON.stringify([component.id, x, y])
+            data: JSON.stringify([component.id,x,y])
         }));
     }
 }
 
 function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = false) {
-    const oldPos = Object.assign({},
+    const oldPos = Object.assign(
+        {},
         dragging && dragging.port == port ? dragging.pos : port.pos
     );
 
@@ -675,10 +679,10 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
 
     const wire = port.connection;
     let oldWirePos;
-    if (wire) {
+    if(wire) {
         oldWirePos = [...wire.pos];
 
-        if (port.type == "input") {
+        if(port.type == "input") {
 
             const pos = wire.pos.slice(-1)[0];
             pos.x = port.component.pos.x;
@@ -688,10 +692,10 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
             const angle = Math.PI / 2 * portPos.side;
             pos.x += Math.sin(angle);
             pos.y += Math.cos(angle);
-            if (portPos.side == 1) pos.x += (port.component.width - 1);
-            else if (portPos.side == 2) pos.y -= (port.component.height - 1);
+            if(portPos.side == 1) pos.x += (port.component.width - 1);
+            else if(portPos.side == 2) pos.y -= (port.component.height - 1);
 
-            if (portPos.side % 2 == 0) pos.x += portPos.pos;
+            if(portPos.side % 2 == 0) pos.x += portPos.pos;
             else pos.y -= portPos.pos;
 
             const dx = wire.pos.slice(-1)[0].x - wire.pos.slice(-2)[0].x;
@@ -701,9 +705,10 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
                 const x = wire.pos.slice(-2)[0].x;
                 const y = wire.pos.slice(-2)[0].y + Math.sign(dy);
 
-                for (let i = 0; i < Math.abs(dy); ++i) {
+                for(let i = 0; i < Math.abs(dy); ++i) {
                     wire.pos.splice(
-                        wire.pos.length - 1, 0, { x, y }
+                        wire.pos.length - 1, 0,
+                        { x,y }
                     );
                 }
             }
@@ -712,14 +717,15 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
                 const x = wire.pos.slice(-2)[0].x + Math.sign(dx);
                 const y = wire.pos.slice(-2)[0].y;
 
-                for (let i = 0; i < Math.abs(dx); ++i) {
+                for(let i = 0; i < Math.abs(dx); ++i) {
                     wire.pos.splice(
-                        wire.pos.length - 1, 0, { x, y }
+                        wire.pos.length - 1, 0,
+                        { x,y }
                     );
                 }
             }
 
-            if (port.pos.side % 2 == 0) {
+            if(port.pos.side % 2 == 0) {
                 vertical();
                 horizontal();
             } else {
@@ -735,48 +741,50 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
             const angle = Math.PI / 2 * portPos.side;
             pos.x += Math.sin(angle);
             pos.y += Math.cos(angle);
-            if (portPos.side == 1) pos.x += (port.component.width - 1);
-            else if (portPos.side == 2) pos.y -= (port.component.height - 1);
+            if(portPos.side == 1) pos.x += (port.component.width - 1);
+            else if(portPos.side == 2) pos.y -= (port.component.height - 1);
 
-            if (portPos.side % 2 == 0) pos.x += portPos.pos;
+            if(portPos.side % 2 == 0) pos.x += portPos.pos;
             else pos.y -= portPos.pos;
 
             const dx = wire.pos[0].x - wire.pos[1].x;
             const dy = wire.pos[0].y - wire.pos[1].y;
 
             const vertical = () => {
-                for (let i = 0; i < Math.abs(dy); ++i) {
+                for(let i = 0; i < Math.abs(dy); ++i) {
                     const x = wire.pos[1].x;
                     const y = wire.pos[1].y + Math.sign(dy);
 
                     const index = wire.pos.findIndex(pos => pos.x == x && pos.y == y);
-                    if (index > -1) {
-                        wire.pos.splice(0, index);
+                    if(index > -1) {
+                        wire.pos.splice(0,index);
                     } else {
                         wire.pos.splice(
-                            1, 0, { x, y }
+                            1, 0,
+                            {x, y}
                         );
                     }
                 }
             }
 
             const horizontal = () => {
-                for (let i = 0; i < Math.abs(dx); ++i) {
+                for(let i = 0; i < Math.abs(dx); ++i) {
                     const x = wire.pos[1].x + Math.sign(dx);
                     const y = wire.pos[1].y;
 
                     const index = wire.pos.findIndex(pos => pos.x == x && pos.y == y);
-                    if (index > -1) {
-                        wire.pos.splice(0, index);
+                    if(index > -1) {
+                        wire.pos.splice(0,index);
                     } else {
                         wire.pos.splice(
-                            1, 0, { x, y }
+                            1, 0,
+                            {x, y}
                         );
                     }
                 }
             }
 
-            if (port.pos.side % 2 == 0) {
+            if(port.pos.side % 2 == 0) {
                 vertical();
                 horizontal();
             } else {
@@ -786,14 +794,14 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
         }
     }
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
             port.pos.side = oldPos.side;
             port.pos.pos = oldPos.pos;
 
-            if (port.connection) {
+            if(port.connection) {
                 port.connection.pos = oldWirePos;
 
                 const component = port.component;
@@ -803,13 +811,13 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
                 const angle = Math.PI / 2 * pos.side;
                 gridPos.x += Math.sin(angle);
                 gridPos.y += Math.cos(angle);
-                if (pos.side == 1) gridPos.x += (component.width - 1);
-                else if (pos.side == 2) gridPos.y += (component.height - 1);
+                if(pos.side == 1) gridPos.x += (component.width - 1);
+                else if(pos.side == 2) gridPos.y += (component.height - 1);
 
-                if (pos.side % 2 == 0) gridPos.x += pos.pos;
+                if(pos.side % 2 == 0) gridPos.x += pos.pos;
                 else gridPos.y -= pos.pos;
 
-                if (port.type == "input") {
+                if(port.type == "input") {
                     port.connection.pos.slice(-1)[0].x = gridPos.x;
                     port.connection.pos.slice(-1)[0].y = gridPos.y;
                 } else {
@@ -818,7 +826,7 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
                 }
             }
 
-            redoStack.push(movePort.bind(redoCaller, ...arguments));
+            redoStack.push(movePort.bind(redoCaller,...arguments));
         });
     }
 }
@@ -826,42 +834,43 @@ function movePort(port, side = port.pos.side, pos = port.pos.pos, undoable = fal
 function moveSelection(
     components,
     wires,
-    dx, dy,
+    dx,dy,
     undoable = false
 ) {
-    for (let i = 0; i < components.length; ++i) {
+    for(let i = 0; i < components.length; ++i) {
         const component = components[i];
         component.pos.x += dx;
         component.pos.y += dy;
 
-        for (let i = 0; i < component.input.length; ++i) {
+        for(let i = 0; i < component.input.length; ++i) {
             const wire = component.input[i].connection;
-            if (wire && !wires.includes(wire)) {
+            if(wire && !wires.includes(wire)) {
                 wire.pos.slice(-1)[0].x += dx;
                 wire.pos.slice(-1)[0].y += dy;
                 let wdx = wire.pos.slice(-1)[0].x - wire.pos.slice(-2)[0].x;
                 let wdy = wire.pos.slice(-1)[0].y - wire.pos.slice(-2)[0].y;
 
                 const index = wire.pos.findIndex(
-                    (pos, i) => i < wire.pos.length - 1 && pos.x == wire.pos.slice(-1)[0].x && pos.y == wire.pos.slice(-1)[0].y
+                    (pos,i) => i < wire.pos.length - 1 && pos.x == wire.pos.slice(-1)[0].x && pos.y == wire.pos.slice(-1)[0].y
                 );
 
-                if (index > -1) {
-                    wire.pos.splice(index + 1, wire.pos.length);
+                if(index > -1) {
+                    wire.pos.splice(index + 1,wire.pos.length);
                     continue;
                 }
 
-                while (Math.abs(wdx) + Math.abs(wdy) > 0) {
+                while(Math.abs(wdx) + Math.abs(wdy) > 0) {
                     let sdx = 0;
                     let sdy = 0;
-                    if (Math.abs(wdx) > Math.abs(wdy)) {
+                    if(Math.abs(wdx) > Math.abs(wdy)) {
                         sdx = Math.sign(wdx);
                     } else {
                         sdy = Math.sign(wdy);
                     }
 
                     wire.pos.splice(
-                        wire.pos.length - 1, 0, {
+                        wire.pos.length - 1, 0,
+                        {
                             x: wire.pos.slice(-2)[0].x + sdx,
                             y: wire.pos.slice(-2)[0].y + sdy
                         }
@@ -872,34 +881,35 @@ function moveSelection(
             }
         }
 
-        for (let i = 0; i < component.output.length; ++i) {
+        for(let i = 0; i < component.output.length; ++i) {
             const wire = component.output[i].connection;
-            if (wire && !wires.includes(wire)) {
+            if(wire && !wires.includes(wire)) {
                 wire.pos[0].x += dx;
                 wire.pos[0].y += dy;
                 let wdx = wire.pos[0].x - wire.pos[1].x;
                 let wdy = wire.pos[0].y - wire.pos[1].y;
 
                 const index = wire.pos.findIndex(
-                    (pos, i) => i > 0 && pos.x == wire.pos[0].x && pos.y == wire.pos[0].y
+                    (pos,i) => i > 0 && pos.x == wire.pos[0].x && pos.y == wire.pos[0].y
                 );
 
-                if (index > -1) {
-                    wire.pos.splice(1, index);
+                if(index > -1) {
+                    wire.pos.splice(1,index);
                     continue;
                 }
 
-                while (Math.abs(wdx) + Math.abs(wdy) > 0) {
+                while(Math.abs(wdx) + Math.abs(wdy) > 0) {
                     let sdx = 0;
                     let sdy = 0;
-                    if (Math.abs(wdx) > Math.abs(wdy)) {
+                    if(Math.abs(wdx) > Math.abs(wdy)) {
                         sdx = Math.sign(wdx);
                     } else {
                         sdy = Math.sign(wdy);
                     }
 
                     wire.pos.splice(
-                        1, 0, {
+                        1, 0,
+                        {
                             x: wire.pos[1].x + sdx,
                             y: wire.pos[1].y + sdy
                         }
@@ -911,32 +921,32 @@ function moveSelection(
         }
     }
 
-    for (let i = 0; i < wires.length; ++i) {
+    for(let i = 0; i < wires.length; ++i) {
         const wire = wires[i];
-        for (let j = 0; j < wire.pos.length; ++j) {
+        for(let j = 0; j < wire.pos.length; ++j) {
             wire.pos[j].x += dx;
             wire.pos[j].y += dy;
         }
 
-        for (let j = 0; j < wire.intersections.length; ++j) {
+        for(let j = 0; j < wire.intersections.length; ++j) {
             wire.intersections[j].x += dx;
             wire.intersections[j].y += dy;
         }
     }
 
-    if (selecting) {
+    if(selecting) {
         selecting.x += dx;
         selecting.y += dy;
         contextMenu.x += dx;
         contextMenu.y += dy;
     }
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
-            moveSelection(components, wires, -dx, -dy, false);
-            redoStack.push(moveSelection.bind(redoCaller, ...arguments));
+            moveSelection(components,wires,-dx,-dy,false);
+            redoStack.push(moveSelection.bind(redoCaller,...arguments));
         });
     }
 }
@@ -948,17 +958,17 @@ function moveSelection(
  @param value
  */
 function edit(object, property, value, undoable = false) {
-    if (object.hasOwnProperty(property) && typeof value == typeof object[property]) {
+    if(object.hasOwnProperty(property) && typeof value == typeof object[property]) {
         const oldValue = object[property];
         object[property] = value;
 
-        if (undoable) {
-            if (this != redoCaller) redoStack = [];
+        if(undoable) {
+            if(this != redoCaller) redoStack = [];
 
             undoStack.push(() => {
                 object[property] = oldValue;
 
-                redoStack.push(edit.bind(redoCaller, ...arguments));
+                redoStack.push(edit.bind(redoCaller,...arguments));
             });
         }
     }
@@ -971,11 +981,11 @@ If no component is found, it returns undefined
 @param {number} y
 @return {object} component
  */
-function findComponentByPos(x = mouse.grid.x, y = mouse.grid.y) {
-    for (let i = 0; i < components.length; ++i) {
+function findComponentByPos(x = mouse.  grid.x, y = mouse.grid.y) {
+    for(let i = 0; i < components.length; ++i) {
         const component = components[i];
-        if (x >= component.pos.x && x < component.pos.x + component.width &&
-            y <= component.pos.y && y > component.pos.y - component.height)
+        if(x >= component.pos.x && x < component.pos.x + component.width &&
+           y <= component.pos.y && y > component.pos.y - component.height)
             return component;
     }
 }
@@ -1018,10 +1028,10 @@ function findWireByID(id) {
  @return {object} wire
  */
 function findWireByPos(x = mouse.grid.x, y = mouse.grid.y) {
-    for (let i = 0; i < wires.length; ++i) {
+    for(let i = 0; i < wires.length; ++i) {
         const pos = wires[i].pos;
-        for (let j = 0; j < pos.length; ++j) {
-            if (x == pos[j].x && y == pos[j].y) return wires[i];
+        for(let j = 0; j < pos.length; ++j) {
+            if(x == pos[j].x && y == pos[j].y) return wires[i];
         }
     }
 }
@@ -1034,10 +1044,10 @@ function findWireByPos(x = mouse.grid.x, y = mouse.grid.y) {
  */
 function findAllWiresByPos(x = mouse.grid.x, y = mouse.grid.y) {
     const found = [];
-    for (let i = 0; i < wires.length; ++i) {
+    for(let i = 0; i < wires.length; ++i) {
         const pos = wires[i].pos;
-        for (let j = 0; j < pos.length; ++j) {
-            if (x == pos[j].x && y == pos[j].y) {
+        for(let j = 0; j < pos.length; ++j) {
+            if(x == pos[j].x && y == pos[j].y) {
                 found.push(wires[i]);
                 break;
             }
@@ -1054,9 +1064,9 @@ function findAllWiresByPos(x = mouse.grid.x, y = mouse.grid.y) {
  @param {number} pos
  @return {object} port
  */
-function findPortByComponent(component, side, pos) {
+function findPortByComponent(component,side,pos) {
     return component.input.find(port => port.pos.side == side && port.pos.pos == pos) ||
-        component.output.find(port => port.pos.side == side && port.pos.pos == pos);
+           component.output.find(port => port.pos.side == side && port.pos.pos == pos);
 }
 
 /*
@@ -1067,24 +1077,24 @@ function findPortByComponent(component, side, pos) {
  @return {object} port
  */
 function findPortByPos(x = mouse.grid.x, y = mouse.grid.y) {
-    if (findComponentByPos()) return;
-    for (let i = 0; i < 4; ++i) {
+    if(findComponentByPos()) return;
+    for(let i = 0; i < 4; ++i) {
         const component = findComponentByPos(
             x - Math.round(Math.sin(Math.PI / 2 * i)),
             y - Math.round(Math.cos(Math.PI / 2 * i))
         );
 
-        if (component) {
+        if(component) {
             const side = i;
             let pos;
-            if (side % 2 == 0) {
+            if(side % 2 == 0) {
                 pos = x - component.pos.x;
             } else {
                 pos = component.pos.y - y;
             }
 
-            const found = findPortByComponent(component, side, pos);
-            if (found) return found;
+            const found = findPortByComponent(component,side,pos);
+            if(found) return found;
         }
     }
 }
@@ -1096,10 +1106,10 @@ function findPortByPos(x = mouse.grid.x, y = mouse.grid.y) {
  @return {object} port
  */
 function findPortByID(id) {
-    for (let i = 0; i < components.length; ++i) {
+    for(let i = 0; i < components.length; ++i) {
         const found = components[i].input.find(port => port.id == id) ||
-            components[i].output.find(port => port.id == id);
-        if (found) return found;
+                      components[i].output.find(port => port.id == id);
+        if(found) return found;
     }
 }
 
@@ -1119,18 +1129,18 @@ function findComponentsInSelection(
     w = selecting.w,
     h = selecting.h
 ) {
-    const x2 = Math.max(x, x + w);
-    const y2 = Math.max(y, y + h);
-    x = Math.min(x, x + w);
-    y = Math.min(y, y + h);
+    const x2 = Math.max(x,x + w);
+    const y2 = Math.max(y,y + h);
+    x = Math.min(x,x + w);
+    y = Math.min(y,y + h);
 
     const result = [];
-    for (let i = 0; i < components.length; ++i) {
+    for(let i = 0; i < components.length; ++i) {
         const component = components[i];
-        if (component.pos.x + (component.width || 0) - .5 > x &&
-            component.pos.x - .5 < x2 &&
-            component.pos.y + (component.height || 0) - .5 > y &&
-            component.pos.y - .5 < y2) {
+        if(component.pos.x + (component.width || 0) - .5 > x &&
+           component.pos.x - .5 < x2 &&
+           component.pos.y + (component.height || 0) - .5 > y &&
+           component.pos.y - .5 < y2) {
             result.push(component);
         }
     }
@@ -1151,16 +1161,16 @@ function findWiresInSelection(
     w = selecting.w,
     h = selecting.h
 ) {
-    const x2 = Math.max(x, x + w);
-    const y2 = Math.max(y, y + h);
-    x = Math.min(x, x + w);
-    y = Math.min(y, y + h);
+    const x2 = Math.max(x,x + w);
+    const y2 = Math.max(y,y + h);
+    x = Math.min(x,x + w);
+    y = Math.min(y,y + h);
 
     const result = [];
-    for (let i = 0; i < wires.length; ++i) {
+    for(let i = 0; i < wires.length; ++i) {
         const pos = wires[i].pos;
-        for (let j = 0; j < pos.length; ++j) {
-            if (pos[j].x >= x && pos[j].x <= x2 &&
+        for(let j = 0; j < pos.length; ++j) {
+            if(pos[j].x >= x && pos[j].x <= x2 &&
                 pos[j].y >= y && pos[j].y <= y2) {
                 result.push(wires[i]);
                 break;
@@ -1184,51 +1194,51 @@ function findWiresInSelection2(
     w = selecting.w,
     h = selecting.h
 ) {
-    const result = findWiresInSelection(x, y, w, h);
-    const components = findComponentsInSelection(x, y, w, h);
+    const result = findWiresInSelection(x,y,w,h);
+    const components = findComponentsInSelection(x,y,w,h);
 
-    const x2 = Math.max(x, x + w);
-    const y2 = Math.max(y, y + h);
-    x = Math.min(x, x + w);
-    y = Math.min(y, y + h);
+    const x2 = Math.max(x,x + w);
+    const y2 = Math.max(y,y + h);
+    x = Math.min(x,x + w);
+    y = Math.min(y,y + h);
 
-    for (let i = 0; i < result.length; ++i) {
+    for(let i = 0; i < result.length; ++i) {
         const wire = result[i];
 
-        if (wire.from && wire.from.component &&
-            !components.includes(wire.from.component)) {
-            result.splice(i, 1);
+        if(wire.from && wire.from.component &&
+           !components.includes(wire.from.component)) {
+            result.splice(i,1);
             i = -1;
             continue;
         }
 
-        if (wire.to && wire.to.component &&
-            !components.includes(wire.to.component)) {
-            result.splice(i, 1);
+        if(wire.to && wire.to.component &&
+          !components.includes(wire.to.component)) {
+            result.splice(i,1);
             i = -1;
             continue;
         }
 
-        for (let i = 0; i < wire.input.length; ++i) {
-            if (!result.includes(wire.input[i])) {
-                wire.input.splice(i, 1);
+        for(let i = 0; i < wire.input.length; ++i) {
+            if(!result.includes(wire.input[i])) {
+                wire.input.splice(i,1);
             }
         }
 
-        for (let i = 0; i < wire.output.length; ++i) {
-            if (!result.includes(wire.output[i])) {
-                wire.output.splice(i, 1);
+        for(let i = 0; i < wire.output.length; ++i) {
+            if(!result.includes(wire.output[i])) {
+                wire.output.splice(i,1);
             }
         }
 
-        if (!wire.from && wire.input.length < 1) {
-            result.splice(i, 1);
+        if(!wire.from && wire.input.length < 1) {
+            result.splice(i,1);
             i = -1;
             continue;
         }
 
-        if (!wire.to && wire.output.length < 1) {
-            result.splice(i, 1);
+        if(!wire.to && wire.output.length < 1) {
+            result.splice(i,1);
             i = -1;
             continue;
         }
@@ -1249,18 +1259,18 @@ function cloneComponent(component, dx = 0, dy = 0) {
         y: component.pos.y + dy
     };
     clone.name = component.name;
-    if (clone.name.includes(clone.constructor.name + "#")) {
+    if(clone.name.includes(clone.constructor.name + "#")) {
         clone.name = clone.constructor.name + "#" + components.filter(a => a.constructor == clone.constructor).length;
     }
 
     clone.width = component.width;
     clone.height = component.height;
     clone.rotation = component.rotation;
-    if (component.hasOwnProperty("value")) clone.value = component.value;
+    if(component.hasOwnProperty("value")) clone.value = component.value;
     clone.properties = Object.assign({}, component.properties);
 
-    if (component.constructor == Custom) {
-        const inner = cloneSelection(component.components, component.wires);
+    if(component.constructor == Custom) {
+        const inner = cloneSelection(component.components,component.wires);
         clone.components = inner.components;
         clone.wires = inner.wires;
         clone.input = [];
@@ -1270,31 +1280,31 @@ function cloneComponent(component, dx = 0, dy = 0) {
         clone.height = component.height;
         clone.width = component.width;
 
-        for (let i = 0; i < component.input.length; ++i) {
+        for(let i = 0; i < component.input.length; ++i) {
             clone.input[i].name = component.input[i].name;
             clone.input[i].value = component.input[i].value;
-            clone.input[i].pos = Object.assign({}, component.input[i].pos);
+            clone.input[i].pos = Object.assign({},component.input[i].pos);
         }
 
-        for (let i = 0; i < component.output.length; ++i) {
+        for(let i = 0; i < component.output.length; ++i) {
             clone.output[i].name = component.output[i].name;
             clone.output[i].value = component.output[i].value;
-            clone.output[i].pos = Object.assign({}, component.output[i].pos);
+            clone.output[i].pos = Object.assign({},component.output[i].pos);
         }
     } else {
         clone.input = [];
-        for (let i = 0; i < component.input.length; ++i) {
+        for(let i = 0; i < component.input.length; ++i) {
             const port = clone.addInputPort();
             port.name = component.input[i].name;
             port.value = component.input[i].value;
-            port.pos = Object.assign({}, component.input[i].pos);
+            port.pos = Object.assign({},component.input[i].pos);
         }
         clone.output = [];
-        for (let i = 0; i < component.output.length; ++i) {
+        for(let i = 0; i < component.output.length; ++i) {
             const port = clone.addOutputPort();
             port.name = component.output[i].name;
             port.value = component.output[i].value;
-            port.pos = Object.assign({}, component.output[i].pos);
+            port.pos = Object.assign({},component.output[i].pos);
         }
     }
     return clone;
@@ -1328,31 +1338,31 @@ function cloneSelection(components = [], wires = [], dx = 0, dy = 0) {
     // Create a copy of the wires array so this function can't mess with the original of important wire arrays
     wires = [...wires];
 
-    const clonedComponents = components.map(component => cloneComponent(component, dx, dy));
+    const clonedComponents = components.map(component => cloneComponent(component,dx,dy));
     const clonedWires = [];
 
     // Clone wires and recreate connections by getting all connection indexes from components array
-    for (let i = 0; i < wires.length; ++i) {
+    for(let i = 0; i < wires.length; ++i) {
         const wire = wires[i];
 
-        if ((wire.from && !components.includes(wire.from.component)) ||
+        if((wire.from && !components.includes(wire.from.component)) ||
             (wire.to && !components.includes(wire.to.component))) {
-            wires.splice(i, 1);
+            wires.splice(i,1);
 
             --i;
             continue;
         }
 
-        const clonedWire = cloneWire(wire, dx, dy);
+        const clonedWire = cloneWire(wire,dx,dy);
 
         let fromIndex, fromPortIndex;
-        if (wire.from) {
+        if(wire.from) {
             fromIndex = components.indexOf(wire.from.component);
             fromPortIndex = wire.from.component.output.indexOf(wire.from);
         }
 
         let toIndex, toPortIndex;
-        if (wire.to) {
+        if(wire.to) {
             toIndex = components.indexOf(wire.to.component);
             toPortIndex = wire.to.component.input.indexOf(wire.to);
         }
@@ -1366,11 +1376,11 @@ function cloneSelection(components = [], wires = [], dx = 0, dy = 0) {
         //     clonedWire
         // );
 
-        if (toPort) {
+        if(toPort) {
             toPort.connection = clonedWire;
             clonedWire.to = toPort;
         }
-        if (fromPort) {
+        if(fromPort) {
             fromPort.connection = clonedWire;
             clonedWire.from = fromPort;
 
@@ -1388,10 +1398,10 @@ function cloneSelection(components = [], wires = [], dx = 0, dy = 0) {
     // }
 
     // Recreate wire connections
-    for (let i = 0; i < wires.length; ++i) {
-        for (let j = 0; j < wires[i].input.length; ++j) {
+    for(let i = 0; i < wires.length; ++i) {
+        for(let j = 0; j < wires[i].input.length; ++j) {
             const index = wires.indexOf(wires[i].input[j]);
-            if (index > -1) {
+            if(index > -1) {
                 connectWires(
                     clonedWires[index],
                     clonedWires[i]
@@ -1399,9 +1409,9 @@ function cloneSelection(components = [], wires = [], dx = 0, dy = 0) {
             }
         }
 
-        for (let j = 0; j < wires[i].output.length; ++j) {
+        for(let j = 0; j < wires[i].output.length; ++j) {
             const index = wires.indexOf(wires[i].output[j]);
-            if (index > -1) {
+            if(index > -1) {
                 connectWires(
                     clonedWires[i],
                     clonedWires[index]
@@ -1424,7 +1434,7 @@ function cloneSelection(components = [], wires = [], dx = 0, dy = 0) {
 //  @param {number} [x coordinate to put the custom component]
 //  @param {number} [y coordinate to put the custom component]
 //  */
-// function compact(
+// function componentize(
 //     components,wires,
 //     name = "Custom",
 //     x = mouse.grid.x, y = mouse.grid.y
@@ -1457,7 +1467,7 @@ function cloneSelection(components = [], wires = [], dx = 0, dy = 0) {
 //     dialog.editCustom(component);
 // }
 
-function compact(
+function componentize(
     components,
     wires,
     selection = selecting,
@@ -1465,20 +1475,20 @@ function compact(
     y = mouse.grid.y,
     undoable = false
 ) {
-    const component = new Custom(undefined, { x, y });
+    const component = new Custom(undefined, { x,y });
 
-    const clone = cloneSelection(components, wires);
+    const clone = cloneSelection(components,wires);
     component.components = clone.components;
     component.wires = clone.wires;
     component.create();
 
     selection = Object.assign({}, selection);
 
-    const removed = removeSelection(selecting.components, selecting.wires);
+    const removed = removeSelection(selecting.components,selecting.wires);
     window.components.push(component);
 
-    if (undoable) {
-        if (this != redoCaller) redoStack = [];
+    if(undoable) {
+        if(this != redoCaller) redoStack = [];
 
         undoStack.push(() => {
             removeComponent(component);
@@ -1489,20 +1499,20 @@ function compact(
                 selection
             );
 
-            for (let i = 0; i < removed.wires.length; ++i) {
+            for(let i = 0; i < removed.wires.length; ++i) {
                 const wire = removed.wires[i];
-                connect(wire.from, wire.to, wire);
-                for (let i = 0; i < wire.input.length; ++i) {
-                    connectWires(wire.input[i], wire);
+                connect(wire.from,wire.to,wire);
+                for(let i = 0; i < wire.input.length; ++i) {
+                    connectWires(wire.input[i],wire);
                 }
 
-                for (let i = 0; i < wire.output.length; ++i) {
-                    connectWires(wire, wire.output[i]);
+                for(let i = 0; i < wire.output.length; ++i) {
+                    connectWires(wire,wire.output[i]);
                 }
             }
 
             redoStack.push(() => {
-                compact.call(null, ...arguments);
+                componentize.call(null,...arguments);
                 selecting = null;
                 contextMenu.hide();
             });
@@ -1513,16 +1523,16 @@ function compact(
 /*
  Generates id for every component using ES6 generators
  */
-const IdGenerator = (function*() {
+const IdGenerator = (function* () {
     let id = 0;
-    while (true) yield id++;
+    while(true) yield id++;
 })();
 const generateId = () => IdGenerator.next().value;
 
 class Component {
     constructor(
         name,
-        pos = Object.assign({}, mouse.grid),
+        pos = Object.assign({},mouse.grid),
         width = 2,
         height = 2,
         icon
@@ -1531,7 +1541,7 @@ class Component {
 
         // If no name is given, create a standard name in the format [Component type]#[Number of components with the same type that are already on the board]
         // Example: if you create an AND gate and there are already 16 AND gates on the board, the name will be AND#16
-        if (!name) {
+        if(!name) {
             name =
                 this.constructor.name + "#" +
                 components.filter(a => a.constructor == this.constructor).length;
@@ -1554,34 +1564,34 @@ class Component {
 
     update() {
         // Highlight
-        if (settings.showComponentUpdates) this.highlight(250);
+        if(settings.showComponentUpdates) this.highlight(250);
 
         // Update output ports
         this.function();
 
         const wires = [];
         const values = [];
-        for (let i = 0; i < this.output.length; ++i) {
+        for(let i = 0; i < this.output.length; ++i) {
             const port = this.output[i];
             // If the port is empty, skip to the next port
-            if (!port.connection) continue;
+            if(!port.connection) continue;
             // // If this output port's value has changed, update all the connected components
             // if(port.value != port.connection.value) {
             //     port.connection.update(port.value);
             // }
 
             const index = wires.indexOf(port.connection);
-            if (index == -1) {
+            if(index == -1) {
                 wires.push(port.connection);
                 values.push(port.value);
-            } else if (values[index] < port.value) {
+            } else if(values[index] < port.value) {
                 values[index] = port.value;
             }
         }
 
-        for (let i = 0; i < wires.length; ++i) {
+        for(let i = 0; i < wires.length; ++i) {
             //wires[i].update(values[i]);
-            updateQueue.push(wires[i].update.bind(wires[i], values[i]));
+            updateQueue.push(wires[i].update.bind(wires[i],values[i]));
         }
     }
 
@@ -1594,15 +1604,15 @@ class Component {
         const x = (this.pos.x - offset.x) * zoom;
         const y = -(this.pos.y - offset.y) * zoom;
 
-        if (!(
-                x + this.width * zoom + zoom / 2 >= 0 &&
-                x - zoom * 1.5 <= c.width &&
-                y + this.height * zoom + zoom / 2 >= 0 &&
-                y - zoom * 1.5 <= c.height
-            )) return;
+        if(!(
+            x + this.width * zoom + zoom / 2 >= 0 &&
+            x - zoom * 1.5 <= c.width &&
+            y + this.height * zoom + zoom / 2 >= 0 &&
+            y - zoom * 1.5 <= c.height
+        )) return;
 
         // Draw the frame of the component
-        if (this.outline) {
+        if(this.outline) {
             ctx.strokeStyle = "#f00";
         } else {
             ctx.strokeStyle = "#111";
@@ -1622,10 +1632,10 @@ class Component {
         ctx.textBaseline = "middle";
 
         // Draw the icon of the component
-        if (this.icon && zoom > 3) {
+        if(this.icon && zoom > 3) {
             ctx.textAlign = "center";
 
-            if (this.icon.type == "icon") {
+            if(this.icon.type == "icon") {
                 ctx.fillStyle = this.value ? "#aaa" : "#111";
                 ctx.font = zoom / 1.3 + "px Material-icons";
                 ctx.fillText(
@@ -1633,7 +1643,7 @@ class Component {
                     x + (this.width - 1) / 2 * zoom,
                     y + (this.height - 1) / 2 * zoom
                 );
-            } else if (this.icon.type == "char") {
+            } else if(this.icon.type == "char") {
                 ctx.fillStyle = this.value ? "#aaa" : "#111";
                 ctx.font = "normal normal normal " + zoom / 1.2 + "px Ubuntu";
                 ctx.fillText(
@@ -1641,7 +1651,7 @@ class Component {
                     x + (this.width - 1) / 2 * zoom,
                     y + (this.height - 1) / 2 * zoom
                 );
-            } else if (this.icon.type == "value") {
+            } else if(this.icon.type == "value") {
                 ctx.fillStyle = "#111";
                 ctx.font = "normal normal normal " + zoom / 1.3 + "px Monospaced";
                 ctx.fillText(
@@ -1653,7 +1663,7 @@ class Component {
         }
 
         // Draw the name of the component in the upper left corner
-        if (this.name && zoom > 30) {
+        if(this.name && zoom > 30) {
             ctx.textAlign = "left";
             ctx.font = "italic normal normal " + zoom / 7 + "px Ubuntu";
             ctx.fillStyle = "#888";
@@ -1665,7 +1675,7 @@ class Component {
         }
 
         // If this component has a delay value, draw the delay value of the component in the bottom left corner
-        if (this.properties.delay && zoom > 30) {
+        if(this.properties.delay && zoom > 30) {
             ctx.textAlign = "left";
             ctx.font = "italic normal normal " + zoom / 7 + "px Ubuntu";
             ctx.fillStyle = "#888";
@@ -1677,17 +1687,17 @@ class Component {
         }
 
         // Draw input pins
-        for (let i = 0; i < this.input.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.input.length; ++i) {
+            const screen = { x,y };
             const pos = this.input[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -1702,7 +1712,7 @@ class Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -1717,9 +1727,9 @@ class Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.input[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -1732,17 +1742,17 @@ class Component {
         }
 
         // Draw output pins
-        for (let i = 0; i < this.output.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.output.length; ++i) {
+            const screen = { x,y };
             const pos = this.output[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -1757,7 +1767,7 @@ class Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -1770,9 +1780,9 @@ class Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.output[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -1785,7 +1795,15 @@ class Component {
         }
     }
 
-    addInputPort(pos, name, properties = {}) {
+    addNewInputPort() {
+        const new_heigth = this.height + 1;
+        changeSize(this, undefined, new_heigth, true);
+        const new_pos = this.input.length;
+        this.addInputPort({ side: 3, pos: new_pos });
+    }
+
+
+    addInputPort(pos,name,properties = {}) {
         const port = {
             id: generateId(),
             type: "input",
@@ -1795,13 +1813,13 @@ class Component {
             value: 0
         }
 
-        Object.assign(port, properties);
+        Object.assign(port,properties);
 
         this.input.push(port);
         return port;
     }
 
-    addOutputPort(pos, name, properties = {}) {
+    addOutputPort(pos,name,properties = {}) {
         const port = {
             id: generateId(),
             type: "output",
@@ -1811,22 +1829,30 @@ class Component {
             value: 0
         }
 
-        Object.assign(port, properties);
+        Object.assign(port,properties);
 
         this.output.push(port);
         return port;
     }
 
+    removeInputPort() {
+        if (this.height > 2) {
+            this.input.pop();
+            const new_heigth = this.height - 1;
+            changeSize(this, undefined, new_heigth, true);
+        }
+    }
+
     rotate() {
         // TODO: solution for input/output
-        for (let i = 0; i < this.input.length; ++i) {
-            if (this.input[i].connection) {
+        for(let i = 0; i < this.input.length; ++i) {
+            if(this.input[i].connection) {
                 return;
             }
         }
 
-        for (let i = 0; i < this.output.length; ++i) {
-            if (this.output[i].connection) {
+        for(let i = 0; i < this.output.length; ++i) {
+            if(this.output[i].connection) {
                 return;
             }
         }
@@ -1837,32 +1863,32 @@ class Component {
         this.height = this.width;
         this.width = tmp;
 
-        if (this.rotation == 0) {
+        if(this.rotation == 0) {
             this.pos.y -= this.width - this.height;
         }
 
-        if (this.rotation == 2) {
+        if(this.rotation == 2) {
             this.pos.x -= this.width - this.height;
         }
 
-        if (this.rotation == 3) {
+        if(this.rotation == 3) {
             this.pos.y += this.height - this.width;
             this.pos.x += this.height - this.width;
         }
 
-        for (let i = 0; i < this.input.length; ++i) {
+        for(let i = 0; i < this.input.length; ++i) {
             this.input[i].pos.side = ++this.input[i].pos.side % 4;
         }
 
-        for (let i = 0; i < this.output.length; ++i) {
+        for(let i = 0; i < this.output.length; ++i) {
             this.output[i].pos.side = ++this.output[i].pos.side % 4;
         }
     }
 }
 
 class Input extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "value" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "value" });
         this.addOutputPort({ side: 1, pos: 0 });
         this.value = 0;
     }
@@ -1871,7 +1897,7 @@ class Input extends Component {
         this.value = 1 - this.value;
         this.update(true);
 
-        if (socket && sendToSocket) {
+        if(socket && sendToSocket) {
             socket.send(JSON.stringify({
                 type: "mousedown",
                 data: this.id
@@ -1885,8 +1911,8 @@ class Input extends Component {
 }
 
 class Output extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "value" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "value" });
         this.addInputPort({ side: 3, pos: 0 });
         this.value = 0;
     }
@@ -1898,8 +1924,8 @@ class Output extends Component {
 
 var timerStart;
 class TimerStart extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "value" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "value" });
         this.addOutputPort({ side: 1, pos: 0 });
         this.value = 0;
     }
@@ -1908,7 +1934,7 @@ class TimerStart extends Component {
         this.value = 1 - this.value;
         this.update(true);
 
-        if (socket && sendToSocket) {
+        if(socket && sendToSocket) {
             socket.send(JSON.stringify({
                 type: "mousedown",
                 data: this.id
@@ -1932,8 +1958,8 @@ class TimerStart extends Component {
 }
 
 class TimerEnd extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "value" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "value" });
         this.addInputPort({ side: 3, pos: 0 });
         this.value = 0;
     }
@@ -1952,38 +1978,9 @@ class TimerEnd extends Component {
     }
 }
 
-class SRLatch extends Component {
-    constructor(name, pos, properties) {
-        super(name, pos, 3, 3, { type: "char", text: "SR Latch" });
-        this.value = this.properties.value || 0;
-
-        this.SET = 0;
-        this.RESET = 1;
-        this.VAL = 0;
-        this.NOT_VAL = 1;
-        this.addInputPort({ side: 3, pos: 0 }, 'S');
-        this.addInputPort({ side: 3, pos: 2 }, 'R');
-        this.addOutputPort({ side: 1, pos: 0 }, 'Q');
-        this.addOutputPort({ side: 1, pos: 2 }, '~Q');
-    }
-
-    function() {
-        if (this.input[this.SET].value) {
-            this.value = 1;
-        }
-        if (this.input[this.RESET].value) {
-            this.value = 0;
-        }
-        this.properties.value = this.value;
-        this.output[this.VAL].value = +this.value;
-        this.output[this.NOT_VAL].value = 1 - this.value;
-    }
-}
-
-
 class NOT extends Component {
-    constructor(name, pos) {
-        super(name, pos, 1, 1, { type: "char", text: "1" });
+    constructor(name,pos) {
+        super(name,pos,1,1,{ type: "char", text: "!" });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
         this.function = function() {
@@ -1993,65 +1990,51 @@ class NOT extends Component {
 }
 
 class AND extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 2, { type: "char", text: "&" });
-        this.addInputPort({ side: 3, pos: 1 });
+    constructor(name,pos) {
+        super(name,pos,2,2,{ type: "char", text: "&" });
         this.addInputPort({ side: 3, pos: 0 });
+        this.addInputPort({ side: 3, pos: 1 });
         this.addOutputPort({ side: 1, pos: 0 });
         this.function = function() {
-            this.output[0].value = this.input[0].value & this.input[1].value;
-        }
-    }
-}
-
-class NAND extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 2, { type: "char", text: "!&" });
-        this.addInputPort({ side: 3, pos: 1 });
-        this.addInputPort({ side: 3, pos: 0 });
-        this.addOutputPort({ side: 1, pos: 0 });
-        this.function = function() {
-            if (this.input[0].value & this.input[1].value == 1)
-                this.output[0].value = 0;
-            else
+            let tmp = 0;
+            this.input.forEach(function(item){
+                if (item.value > 0) {
+                    tmp += 1;
+                }
+              });
+              if (tmp === this.input.length) {
                 this.output[0].value = 1;
+              }
+              else {
+                this.output[0].value = 0;
+              }
         }
     }
 }
-
 
 class OR extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 2, { type: "char", text: "≥1" });
-        this.addInputPort({ side: 3, pos: 1 });
+    constructor(name,pos) {
+        super(name,pos,2,2,{ type: "char", text: "|" });
         this.addInputPort({ side: 3, pos: 0 });
+        this.addInputPort({ side: 3, pos: 1 });
         this.addOutputPort({ side: 1, pos: 0 });
         this.function = function() {
-            this.output[0].value = this.input[0].value | this.input[1].value;
-        }
-    }
-}
-
-class NOR extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 2, { type: "char", text: "!≥1" });
-        this.addInputPort({ side: 3, pos: 1 });
-        this.addInputPort({ side: 3, pos: 0 });
-        this.addOutputPort({ side: 1, pos: 0 });
-        this.function = function() {
-            if (this.input[0].value | this.input[1].value)
-                this.output[0].value = 0;
-            else
-                this.output[0].value = 1;
+            let tmp = 0;
+            this.input.forEach(function(item){
+                if (item.value > 0) {
+                    tmp = 1;
+                }
+              });
+              this.output[0].value = tmp;
         }
     }
 }
 
 class XOR extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 2, { type: "char", text: "=1" });
-        this.addInputPort({ side: 3, pos: 1 });
+    constructor(name,pos) {
+        super(name,pos,2,2,{ type: "char", text: "^" });
         this.addInputPort({ side: 3, pos: 0 });
+        this.addInputPort({ side: 3, pos: 1 });
         this.addOutputPort({ side: 1, pos: 0 });
         this.function = function() {
             this.output[0].value = this.input[0].value ^ this.input[1].value;
@@ -2059,23 +2042,9 @@ class XOR extends Component {
     }
 }
 
-class XNOR extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 2, { type: "char", text: "!=1" });
-        this.addInputPort({ side: 3, pos: 1 });
-        this.addInputPort({ side: 3, pos: 0 });
-        this.addOutputPort({ side: 1, pos: 0 });
-        this.function = function() {
-            if (this.input[0].value ^ this.input[1].value)
-                this.output[0].value = 0;
-            else
-                this.output[0].value = 1;
-        }
-    }
-}
 class Button extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "icon", text: "radio_button_checked" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "icon", text: "radio_button_checked" });
         this.addOutputPort({ side: 1, pos: 0 });
         this.value = 0;
     }
@@ -2084,7 +2053,7 @@ class Button extends Component {
         this.value = 1;
         this.update();
 
-        if (socket && sendToSocket) {
+        if(socket && sendToSocket) {
             socket.send(JSON.stringify({
                 type: "mousedown",
                 data: this.id
@@ -2096,7 +2065,7 @@ class Button extends Component {
         this.value = 0;
         this.update();
 
-        if (socket && sendToSocket) {
+        if(socket && sendToSocket) {
             socket.send(JSON.stringify({
                 type: "mouseup",
                 data: this.id
@@ -2110,8 +2079,8 @@ class Button extends Component {
 }
 
 class Constant extends Component {
-    constructor(name, pos, value = 0) {
-        super(name, pos, 2, 1, { type: "value" });
+    constructor(name,pos,value = 0) {
+        super(name,pos,2,1,{ type: "value" });
         this.addOutputPort({ side: 1, pos: 0 });
         this.value = 1;
     }
@@ -2122,13 +2091,13 @@ class Constant extends Component {
 }
 
 class Delay extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "icon", text: "timer" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "icon", text: "timer" });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
 
         setTimeout(() => {
-            if (!this.properties.hasOwnProperty("delay")) {
+            if(!this.properties.hasOwnProperty("delay")) {
                 dialog.editDelay(this);
             }
         }, 100);
@@ -2136,7 +2105,7 @@ class Delay extends Component {
 
     update() {
         // Highlight
-        if (settings.showComponentUpdates) this.highlight(250);
+        if(settings.showComponentUpdates) this.highlight(250);
 
         this.lastUpdate = new Date;
 
@@ -2153,15 +2122,15 @@ class Delay extends Component {
         const x = (this.pos.x - offset.x) * zoom;
         const y = -(this.pos.y - offset.y) * zoom;
 
-        if (!(
-                x + this.width * zoom + zoom / 2 >= 0 &&
-                x - zoom * 1.5 <= c.width &&
-                y + this.height * zoom + zoom / 2 >= 0 &&
-                y - zoom * 1.5 <= c.height
-            )) return;
+        if(!(
+            x + this.width * zoom + zoom / 2 >= 0 &&
+            x - zoom * 1.5 <= c.width &&
+            y + this.height * zoom + zoom / 2 >= 0 &&
+            y - zoom * 1.5 <= c.height
+        )) return;
 
         // Draw the frame of the component
-        if (this.outline) {
+        if(this.outline) {
             ctx.strokeStyle = "#f00";
         } else {
             ctx.strokeStyle = "#111";
@@ -2179,7 +2148,7 @@ class Delay extends Component {
         ctx.stroke();
 
         const dTime = new Date - this.lastUpdate;
-        if (this.output[0].value == 0 && dTime > 0 && dTime < this.properties.delay) {
+        if(this.output[0].value == 0 && dTime > 0 && dTime < this.properties.delay) {
             const ratio = Math.min(dTime / this.properties.delay, 1);
             ctx.fillStyle = "#ddd";
             ctx.fillRect(
@@ -2193,10 +2162,10 @@ class Delay extends Component {
         ctx.textBaseline = "middle";
 
         // Draw the icon of the component
-        if (this.icon && zoom > 3) {
+        if(this.icon && zoom > 3) {
             ctx.textAlign = "center";
 
-            if (this.icon.type == "icon") {
+            if(this.icon.type == "icon") {
                 ctx.fillStyle = this.value ? "#aaa" : "#111";
                 ctx.font = zoom / 1.3 + "px Material-icons";
                 ctx.fillText(
@@ -2204,7 +2173,7 @@ class Delay extends Component {
                     x + (this.width - 1) / 2 * zoom,
                     y + (this.height - 1) / 2 * zoom
                 );
-            } else if (this.icon.type == "char") {
+            } else if(this.icon.type == "char") {
                 ctx.fillStyle = this.value ? "#aaa" : "#111";
                 ctx.font = "normal normal normal " + zoom / 1.2 + "px Ubuntu";
                 ctx.fillText(
@@ -2212,7 +2181,7 @@ class Delay extends Component {
                     x + (this.width - 1) / 2 * zoom,
                     y + (this.height - 1) / 2 * zoom
                 );
-            } else if (this.icon.type == "value") {
+            } else if(this.icon.type == "value") {
                 ctx.fillStyle = "#111";
                 ctx.font = "normal normal normal " + zoom / 1.3 + "px Monospaced";
                 ctx.fillText(
@@ -2224,7 +2193,7 @@ class Delay extends Component {
         }
 
         // Draw the name of the component in the upper left corner
-        if (this.name && zoom > 30) {
+        if(this.name && zoom > 30) {
             ctx.textAlign = "left";
             ctx.font = "italic normal normal " + zoom / 7 + "px Ubuntu";
             ctx.fillStyle = "#888";
@@ -2236,7 +2205,7 @@ class Delay extends Component {
         }
 
         // Draw the delay value of the component in the bottom left corner
-        if (this.properties.delay && zoom > 30) {
+        if(this.properties.delay && zoom > 30) {
             ctx.textAlign = "left";
             ctx.font = "italic normal normal " + zoom / 7 + "px Ubuntu";
             ctx.fillStyle = "#888";
@@ -2248,17 +2217,17 @@ class Delay extends Component {
         }
 
         // Draw input pins
-        for (let i = 0; i < this.input.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.input.length; ++i) {
+            const screen = { x,y };
             const pos = this.input[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -2273,7 +2242,7 @@ class Delay extends Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -2288,9 +2257,9 @@ class Delay extends Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.input[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -2303,17 +2272,17 @@ class Delay extends Component {
         }
 
         // Draw output pins
-        for (let i = 0; i < this.output.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.output.length; ++i) {
+            const screen = { x,y };
             const pos = this.output[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -2328,7 +2297,7 @@ class Delay extends Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -2341,9 +2310,9 @@ class Delay extends Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.output[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -2358,16 +2327,16 @@ class Delay extends Component {
 }
 
 class Clock extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "icon", text: "access_time" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "icon", text: "access_time" });
         this.addOutputPort({ side: 1, pos: 0 });
         this.value = 0;
 
         setTimeout(() => {
-            if (this.properties.hasOwnProperty("delay")) {
+            if(this.properties.hasOwnProperty("delay")) {
                 this.tick();
             } else {
-                dialog.editDelay(this, this.tick.bind(this));
+                dialog.editDelay(this,this.tick.bind(this));
             }
         }, 100);
     }
@@ -2401,8 +2370,8 @@ class Clock extends Component {
 // }
 
 class Debug extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "icon", text: "report_problem" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "icon", text: "report_problem" });
         this.addInputPort({ side: 3, pos: 0 });
         this.value = 0;
     }
@@ -2415,35 +2384,35 @@ class Debug extends Component {
 }
 
 class Beep extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "icon", text: "audiotrack" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "icon", text: "audiotrack" });
         this.addInputPort({ side: 3, pos: 0 });
         this.properties.frequency = 700;
         this.properties.duration = 200;
     }
 
     function() {
-        if (this.input[0].value == 1) {
-            beep(this.properties.frequency, this.properties.duration);
+        if(this.input[0].value == 1) {
+            beep(this.properties.frequency,this.properties.duration);
         }
     }
 }
 
 class Counter extends Component {
-    constructor(name, pos) {
-        super(name, pos, 2, 1, { type: "value" });
+    constructor(name,pos) {
+        super(name,pos,2,1,{ type: "value" });
         this.addInputPort({ side: 3, pos: 0 });
         this.value = 0;
     }
 
     function() {
-        if (this.input[0].value == 1) ++this.value;
+        if(this.input[0].value == 1) ++this.value;
     }
 }
 
 class LED extends Component {
-    constructor(name, pos, color = [100, 0, 0]) {
-        super(name, pos, 1, 1, { type: "value" });
+    constructor(name,pos,color = [100,0,0]) {
+        super(name,pos,1,1,{ type: "value" });
         this.addInputPort({ side: 3, pos: 0 });
         this.value = 0;
 
@@ -2458,7 +2427,7 @@ class LED extends Component {
         const x = (this.pos.x - offset.x) * zoom;
         const y = -(this.pos.y - offset.y) * zoom;
 
-        if (!(
+        if(!(
                 x + this.width * zoom + zoom / 2 >= 0 &&
                 x - zoom * 1.5 <= c.width &&
                 y + this.height * zoom + zoom / 2 >= 0 &&
@@ -2480,10 +2449,10 @@ class LED extends Component {
         ctx.stroke();
 
         let color;
-        if (this.value == 1) {
+        if(this.value == 1) {
             color = this.color.map(n => Math.min((n * 2), 255) | 0);
 
-            if (zoom > 20) ctx.shadowBlur = zoom / 3;
+            if(zoom > 20) ctx.shadowBlur = zoom / 3;
             ctx.shadowColor = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
         } else {
             color = this.color.map(n => Math.min((n / 2), 255) | 0);
@@ -2503,17 +2472,17 @@ class LED extends Component {
 
 
         // Draw input pins
-        for (let i = 0; i < this.input.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.input.length; ++i) {
+            const screen = {x, y};
             const pos = this.input[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -2528,7 +2497,7 @@ class LED extends Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -2543,9 +2512,9 @@ class LED extends Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.input[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -2558,17 +2527,17 @@ class LED extends Component {
         }
 
         // Draw output pins
-        for (let i = 0; i < this.output.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.output.length; ++i) {
+            const screen = {x, y};
             const pos = this.output[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -2583,7 +2552,7 @@ class LED extends Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -2596,9 +2565,9 @@ class LED extends Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.output[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -2613,8 +2582,8 @@ class LED extends Component {
 }
 
 class Display extends Component {
-    constructor(name, pos, color = "#a00") {
-        super(name, pos, 4, 5, { type: "value" });
+    constructor(name,pos,color = "#a00") {
+        super(name,pos,4,5,{ type: "value" });
         this.addInputPort({ side: 0, pos: 0 }, "A");
         this.addInputPort({ side: 0, pos: 1 }, "B");
         this.addInputPort({ side: 0, pos: 2 }, "C");
@@ -2640,12 +2609,12 @@ class Display extends Component {
         let x = (this.pos.x - offset.x) * zoom;
         let y = -(this.pos.y - offset.y) * zoom;
 
-        if (!(
-                x + this.width * zoom + zoom / 2 >= 0 &&
-                x - zoom * 1.5 <= c.width &&
-                y + this.height * zoom + zoom / 2 >= 0 &&
-                y - zoom * 1.5 <= c.height
-            )) return;
+        if(!(
+            x + this.width * zoom + zoom / 2 >= 0 &&
+            x - zoom * 1.5 <= c.width &&
+            y + this.height * zoom + zoom / 2 >= 0 &&
+            y - zoom * 1.5 <= c.height
+        )) return;
 
         // Draw the frame of the component
         ctx.fillStyle = this.fillColor || "#111";
@@ -2673,103 +2642,103 @@ class Display extends Component {
 
         // Segment A, top mid
         ctx.fillStyle = this.input[0].value ? this.colorOn : this.colorOff;
-        if (zoom > 20) ctx.shadowBlur = this.input[0].value ? zoom / 2 : 0;
+        if(zoom > 20) ctx.shadowBlur = this.input[0].value ? zoom / 2 : 0;
         let sx = x + hOffset + lineWidth + margin;
         let sy = y + vOffset;
         let sLength = (this.width - 1) * zoom - 2 * lineWidth - hOffset - margin * 2;
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + sLength, sy);
-        ctx.lineTo(sx + sLength + lineWidth / 2, sy + lineWidth / 2);
-        ctx.lineTo(sx + sLength, sy + lineWidth);
-        ctx.lineTo(sx, sy + lineWidth);
-        ctx.lineTo(sx - lineWidth / 2, sy + lineWidth / 2);
+        ctx.moveTo(sx,sy);
+        ctx.lineTo(sx + sLength,sy);
+        ctx.lineTo(sx + sLength + lineWidth / 2,sy + lineWidth / 2);
+        ctx.lineTo(sx + sLength,sy + lineWidth);
+        ctx.lineTo(sx,sy + lineWidth);
+        ctx.lineTo(sx - lineWidth / 2,sy + lineWidth / 2);
         ctx.fill();
 
         // Segment G, mid mid
         ctx.fillStyle = this.input[6].value ? this.colorOn : this.colorOff;
-        if (zoom > 20) ctx.shadowBlur = this.input[6].value ? zoom / 2 : 0;
+        if(zoom > 20) ctx.shadowBlur = this.input[6].value ? zoom / 2 : 0;
         sy = y + (this.height / 2 * zoom - lineWidth / 2);
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + sLength, sy);
-        ctx.lineTo(sx + sLength + lineWidth / 2, sy + lineWidth / 2);
-        ctx.lineTo(sx + sLength, sy + lineWidth);
-        ctx.lineTo(sx, sy + lineWidth);
-        ctx.lineTo(sx - lineWidth / 2, sy + lineWidth / 2);
+        ctx.moveTo(sx,sy);
+        ctx.lineTo(sx + sLength,sy);
+        ctx.lineTo(sx + sLength + lineWidth / 2,sy + lineWidth / 2);
+        ctx.lineTo(sx + sLength,sy + lineWidth);
+        ctx.lineTo(sx,sy + lineWidth);
+        ctx.lineTo(sx - lineWidth / 2,sy + lineWidth / 2);
         ctx.fill();
 
         // Segment D, bottom mid
         ctx.fillStyle = this.input[3].value ? this.colorOn : this.colorOff;
-        if (zoom > 20) ctx.shadowBlur = this.input[3].value ? zoom / 2 : 0;
+        if(zoom > 20) ctx.shadowBlur = this.input[3].value ? zoom / 2 : 0;
         sy = y + (this.height * zoom - vOffset - lineWidth);
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + sLength, sy);
-        ctx.lineTo(sx + sLength + lineWidth / 2, sy + lineWidth / 2);
-        ctx.lineTo(sx + sLength, sy + lineWidth);
-        ctx.lineTo(sx, sy + lineWidth);
-        ctx.lineTo(sx - lineWidth / 2, sy + lineWidth / 2);
+        ctx.moveTo(sx,sy);
+        ctx.lineTo(sx + sLength,sy);
+        ctx.lineTo(sx + sLength + lineWidth / 2,sy + lineWidth / 2);
+        ctx.lineTo(sx + sLength,sy + lineWidth);
+        ctx.lineTo(sx,sy + lineWidth);
+        ctx.lineTo(sx - lineWidth / 2,sy + lineWidth / 2);
         ctx.fill();
 
         // Segment F, top left
         ctx.fillStyle = this.input[5].value ? this.colorOn : this.colorOff;
-        if (zoom > 20) ctx.shadowBlur = this.input[5].value ? zoom / 2 : 0;;
+        if(zoom > 20) ctx.shadowBlur = this.input[5].value ? zoom / 2 : 0;;
         sx = x + hOffset;
         sy = y + vOffset + lineWidth + margin;
         sLength = (this.height / 2) * zoom - lineWidth * 1.5 - vOffset - margin * 2;
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + lineWidth / 2, sy - lineWidth / 2);
-        ctx.lineTo(sx + lineWidth, sy);
-        ctx.lineTo(sx + lineWidth, sy + sLength);
-        ctx.lineTo(sx + lineWidth / 2, sy + sLength + lineWidth / 2);
-        ctx.lineTo(sx, sy + sLength);
+        ctx.moveTo(sx,sy);
+        ctx.lineTo(sx + lineWidth / 2,sy - lineWidth / 2);
+        ctx.lineTo(sx + lineWidth,sy);
+        ctx.lineTo(sx + lineWidth,sy + sLength);
+        ctx.lineTo(sx + lineWidth / 2,sy + sLength + lineWidth / 2);
+        ctx.lineTo(sx,sy + sLength);
         ctx.fill();
 
         // Segment B, bottom left
         ctx.fillStyle = this.input[1].value ? this.colorOn : this.colorOff;
-        if (zoom > 20) ctx.shadowBlur = this.input[1].value ? zoom / 2 : 0;
+        if(zoom > 20) ctx.shadowBlur = this.input[1].value ? zoom / 2 : 0;
         sx = x + (this.width - 1) * zoom - lineWidth;
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + lineWidth / 2, sy - lineWidth / 2);
-        ctx.lineTo(sx + lineWidth, sy);
-        ctx.lineTo(sx + lineWidth, sy + sLength);
-        ctx.lineTo(sx + lineWidth / 2, sy + sLength + lineWidth / 2);
-        ctx.lineTo(sx, sy + sLength);
+        ctx.moveTo(sx,sy);
+        ctx.lineTo(sx + lineWidth / 2,sy - lineWidth / 2);
+        ctx.lineTo(sx + lineWidth,sy);
+        ctx.lineTo(sx + lineWidth,sy + sLength);
+        ctx.lineTo(sx + lineWidth / 2,sy + sLength + lineWidth / 2);
+        ctx.lineTo(sx,sy + sLength);
         ctx.fill();
 
         // Segment E, top right
         ctx.fillStyle = this.input[4].value ? this.colorOn : this.colorOff;
-        if (zoom > 20) ctx.shadowBlur = this.input[4].value ? zoom / 2 : 0;
+        if(zoom > 20) ctx.shadowBlur = this.input[4].value ? zoom / 2 : 0;
         sx = x + hOffset;
         sy = y + (this.height / 2) * zoom + lineWidth / 2 + margin;
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + lineWidth / 2, sy - lineWidth / 2);
-        ctx.lineTo(sx + lineWidth, sy);
-        ctx.lineTo(sx + lineWidth, sy + sLength);
-        ctx.lineTo(sx + lineWidth / 2, sy + sLength + lineWidth / 2);
-        ctx.lineTo(sx, sy + sLength);
+        ctx.moveTo(sx,sy);
+        ctx.lineTo(sx + lineWidth / 2,sy - lineWidth / 2);
+        ctx.lineTo(sx + lineWidth,sy);
+        ctx.lineTo(sx + lineWidth,sy + sLength);
+        ctx.lineTo(sx + lineWidth / 2,sy + sLength + lineWidth / 2);
+        ctx.lineTo(sx,sy + sLength);
         ctx.fill();
 
         // Segment C, bottom right
         ctx.fillStyle = this.input[2].value ? this.colorOn : this.colorOff;
-        if (zoom > 20) ctx.shadowBlur = this.input[2].value ? zoom / 2 : 0;
+        if(zoom > 20) ctx.shadowBlur = this.input[2].value ? zoom / 2 : 0;
         sx = x + (this.width - 1) * zoom - lineWidth;
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + lineWidth / 2, sy - lineWidth / 2);
-        ctx.lineTo(sx + lineWidth, sy);
-        ctx.lineTo(sx + lineWidth, sy + sLength);
-        ctx.lineTo(sx + lineWidth / 2, sy + sLength + lineWidth / 2);
-        ctx.lineTo(sx, sy + sLength);
+        ctx.moveTo(sx,sy);
+        ctx.lineTo(sx + lineWidth / 2,sy - lineWidth / 2);
+        ctx.lineTo(sx + lineWidth,sy);
+        ctx.lineTo(sx + lineWidth,sy + sLength);
+        ctx.lineTo(sx + lineWidth / 2,sy + sLength + lineWidth / 2);
+        ctx.lineTo(sx,sy + sLength);
         ctx.fill();
 
         // Decimal Point segment
         ctx.fillStyle = this.input[7].value ? this.colorOn : this.colorOff;
-        if (zoom > 20) ctx.shadowBlur = this.input[7].value ? zoom / 2 : 0;
+        if(zoom > 20) ctx.shadowBlur = this.input[7].value ? zoom / 2 : 0;
         ctx.beginPath();
         ctx.arc(
             x + (this.width - .5) * zoom,
@@ -2785,17 +2754,17 @@ class Display extends Component {
         y = y + zoom / 2;
 
         // Draw input pins
-        for (let i = 0; i < this.input.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.input.length; ++i) {
+            const screen = { x,y };
             const pos = this.input[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -2810,7 +2779,7 @@ class Display extends Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -2825,9 +2794,9 @@ class Display extends Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.input[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -2840,17 +2809,17 @@ class Display extends Component {
         }
 
         // Draw output pins
-        for (let i = 0; i < this.output.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.output.length; ++i) {
+            const screen = { x,y };
             const pos = this.output[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -2865,7 +2834,7 @@ class Display extends Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -2878,9 +2847,9 @@ class Display extends Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.output[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -2893,7 +2862,7 @@ class Display extends Component {
         }
 
         // If the component is highlighted, draw a colored layer over the frame
-        if (this.outline > 0) {
+        if(this.outline > 0) {
             ctx.strokeStyle = "#d00";
             ctx.lineWidth = zoom / 12 | 0;
             ctx.beginPath();
@@ -3015,7 +2984,7 @@ class Custom extends Component {
         wires = [],
         description = ""
     ) {
-        super(name, pos);
+        super(name,pos);
 
         this.height = 1;
         this.width = 3;
@@ -3024,12 +2993,12 @@ class Custom extends Component {
         this.components = components;
         this.wires = wires;
 
-        if (this.components.length || this.wires.length) this.create();
+        if(this.components.length || this.wires.length) this.create();
     }
 
     update() {
         // Highlight
-        if (settings.showComponentUpdates) this.highlight(250);
+        if(settings.showComponentUpdates) this.highlight(250);
 
         this.function();
     }
@@ -3040,36 +3009,38 @@ class Custom extends Component {
         const output = this.components.filter(component => component.constructor == Output);
 
         // If an input/output port is removed, remove the corresponding port
-        for (let i = 0; i < this.input.length; ++i) {
-            if (!input.includes(this.input[i].inputPort)) {
-                if (this.input[i].connection) {
+        for(let i = 0; i < this.input.length; ++i) {
+            if(!input.includes(this.input[i].inputPort)) {
+                if(this.input[i].connection) {
                     removeWire(this.input[i].connection);
                 }
-                this.input.splice(i, 1);
+                this.input.splice(i,1);
                 --i;
             }
         }
-        for (let i = 0; i < this.output.length; ++i) {
-            if (!output.includes(this.output[i].outputPort)) {
-                if (this.output[i].connection) {
+        for(let i = 0; i < this.output.length; ++i) {
+            if(!output.includes(this.output[i].outputPort)) {
+                if(this.output[i].connection) {
                     removeWire(this.output[i].connection);
                 }
-                this.output.splice(i, 1);
+                this.output.splice(i,1);
                 --i;
             }
         }
 
         let inputPos = 0;
-        for (let i = 0; i < input.length; ++i) {
+        for(let i = 0; i < input.length; ++i) {
             const port = this.input.find(port => port.inputPort == input[i]);
-            if (!port) {
-                while (findPortByComponent(this, 3, inputPos)) {
+            if(!port) {
+                while(findPortByComponent(this,3,inputPos)) {
                     ++inputPos;
-                    if (inputPos > this.height - 1) ++this.height;
+                    if(inputPos > this.height - 1) ++this.height;
                 }
 
-                this.addInputPort({ side: 3, pos: inputPos },
-                    input[i].name, { inputPort: input[i] }
+                this.addInputPort(
+                    { side: 3, pos: inputPos },
+                    input[i].name,
+                    { inputPort: input[i] }
                 );
             } else {
                 port.name = input[i].name;
@@ -3077,22 +3048,24 @@ class Custom extends Component {
         }
 
         let outputPos = 0;
-        for (let i = 0; i < output.length; ++i) {
+        for(let i = 0; i < output.length; ++i) {
             let port = this.output.find(port => port.outputPort == output[i]);
-            if (!port) {
-                while (findPortByComponent(this, 1, outputPos)) {
+            if(!port) {
+                while(findPortByComponent(this,1,outputPos)) {
                     ++outputPos;
-                    if (outputPos > this.height - 1) ++this.height;
+                    if(outputPos > this.height - 1) ++this.height;
                 }
 
-                port = this.addOutputPort({ side: 1, pos: outputPos },
-                    output[i].name, { outputPort: output[i] }
+                port = this.addOutputPort(
+                    { side: 1, pos: outputPos },
+                    output[i].name,
+                    { outputPort: output[i] }
                 );
 
                 output[i].port = port;
                 output[i].update = function() {
                     // Highlight
-                    if (settings.showComponentUpdates) this.highlight(250);
+                    if(settings.showComponentUpdates) this.highlight(250);
 
                     this.function();
 
@@ -3145,15 +3118,15 @@ class Custom extends Component {
     // }
 
     function() {
-        for (let i = 0; i < this.input.length; ++i) {
+        for(let i = 0; i < this.input.length; ++i) {
             const port = this.input[i];
-            if (port.value != port.inputPort.value) {
+            if(port.value != port.inputPort.value) {
                 port.inputPort.value = port.value;
                 port.inputPort.update();
             }
         }
 
-        for (let i = 0; i < this.output.length; ++i) {
+        for(let i = 0; i < this.output.length; ++i) {
             this.output[i].outputPort.update();
             this.output[i].value = this.output[i].outputPort.value;
         }
@@ -3168,7 +3141,7 @@ class Custom extends Component {
             wires: [...wires],
             undoStack: [...undoStack],
             redoStack: [...redoStack],
-            offset: Object.assign({}, offset),
+            offset: Object.assign({},offset),
             zoom
         });
 
@@ -3204,12 +3177,12 @@ class Custom extends Component {
         const x = (this.pos.x - offset.x) * zoom;
         const y = -(this.pos.y - offset.y) * zoom;
 
-        if (!(
-                x + this.width * zoom + zoom / 2 >= 0 &&
-                x - zoom * 1.5 <= c.width &&
-                y + this.height * zoom + zoom / 2 >= 0 &&
-                y - zoom * 1.5 <= c.height
-            )) return;
+        if(!(
+            x + this.width * zoom + zoom / 2 >= 0 &&
+            x - zoom * 1.5 <= c.width &&
+            y + this.height * zoom + zoom / 2 >= 0 &&
+            y - zoom * 1.5 <= c.height
+        )) return;
 
         // Draw the frame of the component
         ctx.fillStyle = "#111";
@@ -3229,7 +3202,7 @@ class Custom extends Component {
         ctx.textAlign = "center";
 
         // Draw the name of the component
-        if (this.name && zoom > 5) {
+        if(this.name && zoom > 5) {
             ctx.fillStyle = "#888";
             ctx.font = zoom / 3 + "px Ubuntu";
             ctx.fillText(
@@ -3241,7 +3214,7 @@ class Custom extends Component {
 
         // Draw the description of the component
         const description = this.properties.description;
-        if (description && zoom > 30) {
+        if(description && zoom > 30) {
             ctx.fillStyle = "#666";
             ctx.font = zoom / 7 + "px Ubuntu";
             ctx.fillText(
@@ -3254,8 +3227,8 @@ class Custom extends Component {
         ctx.strokeStyle = "#111";
 
         // Draw input pins
-        for (let i = 0; i < this.input.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.input.length; ++i) {
+            const screen = { x,y };
             const pos = this.input[i].pos;
 
             // let ox = x;
@@ -3275,10 +3248,10 @@ class Custom extends Component {
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -3293,7 +3266,7 @@ class Custom extends Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -3308,9 +3281,9 @@ class Custom extends Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.input[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -3323,17 +3296,17 @@ class Custom extends Component {
         }
 
         // Draw output pins
-        for (let i = 0; i < this.output.length; ++i) {
-            const screen = { x, y };
+        for(let i = 0; i < this.output.length; ++i) {
+            const screen = { x,y };
             const pos = this.output[i].pos;
 
             const angle = Math.PI / 2 * pos.side;
             screen.x += Math.sin(angle) * zoom;
             screen.y -= Math.cos(angle) * zoom;
-            if (pos.side == 1) screen.x += (this.width - 1) * zoom;
-            else if (pos.side == 2) screen.y += (this.height - 1) * zoom;
+            if(pos.side == 1) screen.x += (this.width - 1) * zoom;
+            else if(pos.side == 2) screen.y += (this.height - 1) * zoom;
 
-            if (pos.side % 2 == 0) screen.x += pos.pos * zoom;
+            if(pos.side % 2 == 0) screen.x += pos.pos * zoom;
             else screen.y += pos.pos * zoom;
 
             ctx.beginPath();
@@ -3348,7 +3321,7 @@ class Custom extends Component {
             ctx.lineWidth = zoom / 8;
             ctx.stroke();
 
-            if (zoom > 10) {
+            if(zoom > 10) {
                 ctx.beginPath();
                 ctx.arc(
                     screen.x,
@@ -3361,9 +3334,9 @@ class Custom extends Component {
                 ctx.fill();
             }
 
-            if (zoom > 30) {
+            if(zoom > 30) {
                 const name = this.output[i].name;
-                if (name) {
+                if(name) {
                     ctx.fillStyle = "#888";
                     ctx.font = zoom / 7 + "px Ubuntu";
                     ctx.fillText(
@@ -3376,7 +3349,7 @@ class Custom extends Component {
         }
 
         // If the component is highlighted, draw a colored layer over the frame
-        if (this.outline > 0) {
+        if(this.outline > 0) {
             ctx.strokeStyle = "#d00";
             ctx.lineWidth = zoom / 12 | 0;
             ctx.beginPath();
@@ -3395,7 +3368,7 @@ class Wire {
     constructor(
         pos = [],
         intersections = [],
-        color = [136, 136, 136],
+        color = [136,136,136],
         from,
         to
     ) {
@@ -3414,21 +3387,21 @@ class Wire {
         this.color = color;
     }
 
-    updateValue(value = 0, from) {
-        if (value == 1) {
+    updateValue(value = 0,from) {
+        if(value == 1) {
             value = 1;
-        } else if (this.from && this.from.value == 1) {
+        } else if(this.from && this.from.value == 1) {
             value = 1;
-        } else if (this.input.find(wire => wire != from && wire.value == 1)) {
+        } else if(this.input.find(wire => wire != from && wire.value == 1)) {
             const input = this.input.map(wire => wire.value);
 
-            for (let i = 0; i < this.input.length; ++i) {
-                if (this.input[i].input.includes(this)) {
-                    input[i] = this.input[i].updateValue(value, this);
+            for(let i = 0; i < this.input.length; ++i) {
+                if(this.input[i].input.includes(this)) {
+                    input[i] = this.input[i].updateValue(value,this);
                 }
             }
 
-            if (input.indexOf(1) > -1) {
+            if(input.indexOf(1) > -1) {
                 value = 1;
             } else {
                 value = 0;
@@ -3440,22 +3413,22 @@ class Wire {
         return value;
     }
 
-    update(value, from) {
-        if (this.input.length > 0) {
+    update(value,from) {
+        if(this.input.length > 0) {
             value = this.updateValue(value, from);
         }
 
-        if (this.value == value) return;
+        if(this.value == value) return;
         this.value = value;
 
-        for (let i = 0; i < this.output.length; ++i) {
+        for(let i = 0; i < this.output.length; ++i) {
             const wire = this.output[i];
-            if (wire != from) {
-                wire.update && updateQueue.push(wire.update.bind(wire, this.value, this));
+            if(wire != from) {
+                wire.update && updateQueue.push(wire.update.bind(wire,this.value,this));
             }
         }
 
-        if (this.to && this.to.value != this.value) {
+        if(this.to && this.to.value != this.value) {
             this.to.value = this.value;
             this.to.component && updateQueue.push(this.to.component.update.bind(this.to.component));
         }
@@ -3464,12 +3437,12 @@ class Wire {
     draw() {
         const pos = this.pos;
 
-        if (zoom > 50) {
+        if(zoom > 50) {
             ctx.lineCap = "round";
         }
 
         let color;
-        if (this.value == 1) {
+        if(this.value == 1) {
             color = this.color;
         } else {
             color = this.color.map(n => (n + 255 + 255 + 255) / 4 | 0);
@@ -3477,43 +3450,47 @@ class Wire {
         ctx.strokeStyle = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
 
         const path = [];
-        for (let i = 0; i < pos.length; ++i) {
-            if (i == 0 || i == pos.length - 1) {
+        for(let i = 0; i < pos.length; ++i) {
+            if(i == 0 || i == pos.length - 1) {
                 path.push(Object.assign({}, pos[i]));
-            } else if (pos[i].x - pos[i - 1].x != pos[i + 1].x - pos[i].x ||
-                !pos[i].y - pos[i - 1].y != pos[i + 1].y - pos[i].y) {
+            } else if(pos[i].x - pos[i - 1].x != pos[i + 1].x - pos[i].x ||
+                      !pos[i].y - pos[i - 1].y != pos[i + 1].y - pos[i].y) {
                 path.push(Object.assign({}, pos[i]));
             }
         }
 
         ctx.beginPath();
         ctx.lineTo(
-            (path[0].x - offset.x) * zoom | 0, -(path[0].y - offset.y) * zoom | 0
+            (path[0].x - offset.x) * zoom | 0,
+            -(path[0].y - offset.y) * zoom | 0
         );
-        for (let i = 1; i < path.length - 1; ++i) {
+        for(let i = 1; i < path.length - 1; ++i) {
             // if(!isVisible(path[i - 1].x,path[i - 1].y) &&
             //    !isVisible(path[i + 1].x,path[i + 1].y)) continue;
 
             ctx.lineTo(
-                (path[i].x - offset.x) * zoom | 0, -(path[i].y - offset.y) * zoom | 0
+                (path[i].x - offset.x) * zoom | 0,
+                -(path[i].y - offset.y) * zoom | 0
             );
         }
         ctx.lineTo(
-            (path[path.length - 1].x - offset.x) * zoom | 0, -(path[path.length - 1].y - offset.y) * zoom | 0
+            (path[path.length - 1].x - offset.x) * zoom | 0,
+            -(path[path.length - 1].y - offset.y) * zoom | 0
         );
         ctx.stroke();
 
-        for (let i = 0; i < this.intersections.length; ++i) {
+        for(let i = 0; i < this.intersections.length; ++i) {
             const pos = this.intersections[i];
 
-            if (!pos.type) ctx.fillStyle = "#111";
-            else if (pos.type == 1) ctx.fillStyle = "#11f";
-            else if (pos.type == 2) ctx.fillStyle = "#1f1";
-            else if (pos.type == 3) ctx.fillStyle = "#f11";
+            if(!pos.type) ctx.fillStyle = "#111";
+            else if(pos.type == 1) ctx.fillStyle = "#11f";
+            else if(pos.type == 2) ctx.fillStyle = "#1f1";
+            else if(pos.type == 3) ctx.fillStyle = "#f11";
 
             ctx.beginPath();
             ctx.arc(
-                (pos.x - offset.x) * zoom, -(pos.y - offset.y) * zoom,
+                (pos.x - offset.x) * zoom,
+                -(pos.y - offset.y) * zoom,
                 zoom / 8,
                 0, Math.PI * 2
             );
