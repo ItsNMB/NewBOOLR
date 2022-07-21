@@ -13,7 +13,7 @@ contextMenu.show = function(pos) {
     this.innerHTML = "";
     if(selecting) {
         this.appendChild(contextOptions["copy"]);
-        if(selecting.components && selecting.components.length > 2) this.appendChild(contextOptions["compact"]);
+        if(selecting.components && selecting.components.length > 2) this.appendChild(contextOptions["componentize"]);
         this.appendChild(contextOptions["remove all"]);
     } else {
         const component = findComponentByPos(Math.round(pos.x / zoom + offset.x),Math.round(-pos.y / zoom + offset.y));
@@ -208,10 +208,10 @@ contextOptions["view connections"].onclick = () => {
     );
 };
 
-// compact
-contextOptions["compact"] = document.createElement("li");
-contextOptions["compact"].innerHTML = '<i class="material-icons">settings_input_component</i><span>compact</span>';
-contextOptions["compact"].onclick = () => {
+// Componentize
+contextOptions["componentize"] = document.createElement("li");
+contextOptions["componentize"].innerHTML = '<i class="material-icons">settings_input_component</i><span>Componentize</span>';
+contextOptions["componentize"].onclick = () => {
     const component = new Custom(
         selecting.components,
         {   x: Math.round(selecting.x + selecting.w / 2),

@@ -4,6 +4,8 @@ var wires = [];
 // When for example a custom component inside a custom component is opened, the path of custom components is saved in the following array
 let path = [];
 
+var default_delay = 10;
+
 /*
 Adds component to the board
 @param {object} component
@@ -1089,7 +1091,7 @@ function findPortByPos(x = mouse.grid.x, y = mouse.grid.y) {
             let pos;
             if(side % 2 == 0) {
                 pos = x - component.pos.x;
-            } else {
+            }  else {
                 pos = component.pos.y - y;
             }
 
@@ -1137,12 +1139,12 @@ function findComponentsInSelection(
     const result = [];
     for(let i = 0; i < components.length; ++i) {
         const component = components[i];
-        if(component.pos.x + (component.width || 0) - .5 > x &&
-           component.pos.x - .5 < x2 &&
-           component.pos.y + (component.height || 0) - .5 > y &&
-           component.pos.y - .5 < y2) {
-            result.push(component);
-        }
+         if(x < component.pos.x + (component.width || 0) - .5 &&
+           x2 > component.pos.x - .5 && 
+           y2 > component.pos.y - (component.height || 0) + .5 &&
+           y < component.pos.y +.5) {
+             result.push(component);
+         }
     }
     return result;
 }
@@ -1529,6 +1531,11 @@ const IdGenerator = (function* () {
 })();
 const generateId = () => IdGenerator.next().value;
 
+function sleep(ms) {
+    boolrConsole.log(`sleeping for ${ms} ms`);
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 class Component {
     constructor(
         name,
@@ -1568,6 +1575,8 @@ class Component {
 
         // Update output ports
         this.function();
+        // setTimeout(this.function(), default_delay);
+        // boolrConsole.log(default_delay);
 
         const wires = [];
         const values = [];
@@ -1657,7 +1666,7 @@ class Component {
                 ctx.fillText(
                     this.value,
                     x + (this.width - 1) / 2 * zoom,
-                    y + (this.height - 1) / 2 * zoom
+                    y + (this.height - .85) / 2 * zoom
                 );
             }
         }
@@ -1802,7 +1811,6 @@ class Component {
         this.addInputPort({ side: 3, pos: new_pos });
     }
 
-
     addInputPort(pos,name,properties = {}) {
         const port = {
             id: generateId(),
@@ -1836,7 +1844,7 @@ class Component {
     }
 
     removeInputPort() {
-        if (this.height > 2) {
+        if (this.input.length > 2) {
             this.input.pop();
             const new_heigth = this.height - 1;
             changeSize(this, undefined, new_heigth, true);
@@ -1978,23 +1986,44 @@ class TimerEnd extends Component {
     }
 }
 
+
 class NOT extends Component {
     constructor(name,pos) {
         super(name,pos,1,1,{ type: "char", text: "!" });
         this.addInputPort({ side: 3, pos: 0 });
         this.addOutputPort({ side: 1, pos: 0 });
+        this.properties.delay = default_delay;
         this.function = function() {
             this.output[0].value = 1 - this.input[0].value;
         }
     }
 }
 
-class AND extends Component {
-    constructor(name,pos) {
-        super(name,pos,2,2,{ type: "char", text: "&" });
+
+class PrimitiveGate extends Component {
+    constructor(name, pos = Object.assign({},mouse.grid), width = 2, height = 2, icon) {
+        super(name, pos, width, height, icon)
         this.addInputPort({ side: 3, pos: 0 });
         this.addInputPort({ side: 3, pos: 1 });
         this.addOutputPort({ side: 1, pos: 0 });
+        this.properties.delay = default_delay;
+    }
+
+    update() {
+        if(settings.showComponentUpdates) this.highlight(250);
+
+        setTimeout(() => updateQueue.push(
+            () => {
+                this.function();
+                this.output[0].connection && this.output[0].connection.update(this.output[0].value);
+            }
+        ), this.properties.delay);
+    }
+}
+
+class AND extends PrimitiveGate {
+    constructor(name,pos) {
+        super(name,pos,2,2,{ type: "char", text: "&" });
         this.function = function() {
             let tmp = 0;
             this.input.forEach(function(item){
@@ -2012,32 +2041,84 @@ class AND extends Component {
     }
 }
 
-class OR extends Component {
+class NAND extends PrimitiveGate {
+    constructor(name, pos) {
+        super (name, pos, 2, 2, {type: "char", text: "!&"});
+        this.function = function() {
+            let tmp = 0;
+            this.input.forEach(function(item){
+                if (item.value > 0) {
+                    tmp += 1;
+                }
+              });
+              if (tmp === this.input.length) {
+                this.output[0].value = 0;
+              }
+              else {
+                this.output[0].value = 1;
+              }
+        }
+    }
+}
+
+class OR extends PrimitiveGate {
     constructor(name,pos) {
-        super(name,pos,2,2,{ type: "char", text: "|" });
-        this.addInputPort({ side: 3, pos: 0 });
-        this.addInputPort({ side: 3, pos: 1 });
-        this.addOutputPort({ side: 1, pos: 0 });
+        super(name,pos,2,2,{ type: "char", text: "≥1" });
         this.function = function() {
             let tmp = 0;
             this.input.forEach(function(item){
                 if (item.value > 0) {
                     tmp = 1;
                 }
-              });
-              this.output[0].value = tmp;
+            });
+            this.output[0].value = tmp;
         }
     }
 }
 
-class XOR extends Component {
+class NOR extends PrimitiveGate {
     constructor(name,pos) {
-        super(name,pos,2,2,{ type: "char", text: "^" });
-        this.addInputPort({ side: 3, pos: 0 });
-        this.addInputPort({ side: 3, pos: 1 });
-        this.addOutputPort({ side: 1, pos: 0 });
+        super(name,pos,2,2,{ type: "char", text: "!≥1" });
         this.function = function() {
-            this.output[0].value = this.input[0].value ^ this.input[1].value;
+            let tmp = 1;
+            this.input.forEach(function(item){
+                if (item.value > 0) {
+                    tmp = 0;
+                }
+            });
+            this.output[0].value = tmp;
+        }
+    }
+}
+
+class XOR extends PrimitiveGate {
+    constructor(name,pos) {
+        super(name,pos,2,2,{ type: "char", text: "=1" });
+        this.function = function() {
+            let tmp = 0;
+            this.input.forEach(function(item){
+                if (item.value > 0) {
+                    tmp += 1;
+                }
+            });
+            this.output[0].value = tmp % 2;
+        }
+    }
+}
+
+class XNOR extends PrimitiveGate {
+    constructor(name,pos) {
+        super(name,pos,2,2,{ type: "char", text: "!=1" });
+        this.function = function() {
+            this.function = function() {
+                let tmp = 0;
+                this.input.forEach(function(item){
+                    if (item.value > 0) {
+                        tmp += 1;
+                    }
+                });
+                this.output[0].value = 1 - (tmp % 2);
+            }
         }
     }
 }
@@ -2975,6 +3056,33 @@ class Display extends Component {
 //
 //     }
 // }
+
+class ROM extends Component {
+    constructor(name,pos,data=[]) {
+        super(name,pos,3,8,{ type: "char", text: "ROM" });
+
+        setTimeout(() => {
+            if(!this.properties.hasOwnProperty("data") ||
+               !this.properties.hasOwnProperty("addressWidth")) {
+                dialog.editRom(this);
+            }
+        }, 100);
+    }
+
+    function() {
+        let addr = 0;
+        for (let  i = 0; i < this.input.length; i++) {
+            addr |= (this.input[i].value > 0) << i;
+        }
+        let rom = this.properties.rom;
+        if (rom) {
+            let content = this.properties.rom[addr];
+            for (let i = 0; i < this.output.length; i++) {
+                this.output[i].value = (content & (1 << i)) > 0 ? 1 : 0;
+            }
+        }
+    }
+}
 
 class Custom extends Component {
     constructor(
